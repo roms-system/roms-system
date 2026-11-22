@@ -1,0 +1,3312 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ROMS - Radar Operation Management System | Created by 41016</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans Sinhala & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans Sinhala', 'Inter', sans-serif;
+            background-color: #090d16;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .mobile-shell {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #f1f5f9;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        .fade-in {
+            animation: fadeIn 0.22s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-press:active {
+            transform: scale(0.97);
+        }
+        @keyframes pulseBorder {
+            0%, 100% { border-color: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+            50% { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08); }
+        }
+        .urgent-alert-box {
+            animation: pulseBorder 2.2s infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+
+    <!-- Main Mobile App Shell -->
+    <div id="app" class="mobile-shell overflow-x-hidden"></div>
+
+    <!-- Custom Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[460px] pointer-events-none flex flex-col gap-2"></div>
+
+    <!-- Modal Container -->
+    <div id="modal-container" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3"></div>
+
+    <script>
+        /**
+         * ROMS - Radar Operation Management System
+         * Identity: Created by 41016
+         * Standardized Branches: ADSO, AIR RADIO, ELECTRICIAN, CET, OMT, ADMIN ASSISTANT, OPS GUARD
+         */
+
+        const ROMS_IDENTITY = {
+            systemCode: 'ROMS',
+            systemFullName: 'Radar Operation Management System',
+            createdBy: '41016'
+        };
+
+        // ==========================================
+        // 1. STANDARDIZED BRANCHES, RANKS & DUTY TYPES
+        // ==========================================
+        const STANDARD_BRANCHES = [
+            'ADSO',
+            'AIR RADIO',
+            'ELECTRICIAN',
+            'CET',
+            'OMT',
+            'ADMIN ASSISTANT',
+            'OPS GUARD'
+        ];
+
+        const BRANCH_FILTER_GROUPS = [
+            { id: 'ALL', label: 'සියල්ල (All)', branches: null },
+            { id: 'ADSO', label: 'ADSO', branches: ['ADSO'] },
+            { id: 'AIR RADIO', label: 'AIR RADIO', branches: ['AIR RADIO'] },
+            { id: 'ELECTRICIAN', label: 'ELECTRICIAN', branches: ['ELECTRICIAN'] },
+            { id: 'CET', label: 'CET', branches: ['CET'] },
+            { id: 'OMT', label: 'OMT', branches: ['OMT'] },
+            { id: 'ADMIN ASSISTANT', label: 'ADMIN ASSISTANT', branches: ['ADMIN ASSISTANT'] },
+            { id: 'OPS GUARD', label: 'OPS GUARD', branches: ['OPS GUARD'] }
+        ];
+
+        const RANK_LIST = [
+            'SUPER ADMIN',
+            'Wg Cdr',
+            'Sqn Ldr',
+            'Flt Lt',
+            'Fg Off',
+            'WO',
+            'F/SGT',
+            'SGT',
+            'CPL',
+            'LAC',
+            'AC',
+            'PTE',
+            'OTHER'
+        ];
+
+        const DUTY_TYPES = [
+            'DUTY SNCO',
+            'CREW CHIEF',
+            'CD DUTY',
+            'ADSO DUTY',
+            'RADAR FITTER DUTY',
+            'PLANT OPERATOR DUTY',
+            'ELECTRICIAN DUTY',
+            'OMT DUTY',
+            'BASE ORDERLY OFFICER DUTY',
+            'OPS CMD DUTY',
+            'DUTY OFFICER',
+            'SENIOR PASSENGER GUARD DUTY',
+            'IS DUTY',
+            'MAIL RUN',
+            'QUOTATION RUN'
+        ];
+
+        const DUTY_SHIFTS = [
+            'Day Shift (0600 - 2000 hrs)',
+            'Night Shift (2000 - 0600 hrs)',
+            'Shift A (2000 - 0200 hrs)',
+            'Shift B (0200 - 0600 hrs)',
+            '24 Hrs Duty'
+        ];
+
+        function normalizeBranchName(branch) {
+            const b = String(branch || '').trim().toUpperCase();
+            if (b === 'ADSO' || b === 'OPS AIR') return 'ADSO';
+            if (b === 'AIR RADIO' || b === 'RADAR' || b === 'RADAR FITTER' || b === 'RADAR FITER') return 'AIR RADIO';
+            if (b === 'ELECTRICIAN' || b === 'ELEC') return 'ELECTRICIAN';
+            if (b === 'CET') return 'CET';
+            if (b === 'OMT') return 'OMT';
+            if (b === 'ADMIN ASSISTANT' || b === 'ADMIN ASST' || b === 'CLERK') return 'ADMIN ASSISTANT';
+            if (b === 'OPS GUARD' || b === 'OPS GRD' || b === 'DISCIP') return 'OPS GUARD';
+            return b || 'ADSO';
+        }
+
+        function normalizeRankName(rank) {
+            const r = String(rank || '').trim();
+            if (r.toUpperCase() === 'OC / ADMIN') return 'SUPER ADMIN';
+            return r;
+        }
+
+        const DEFAULT_NOMINAL_ROLL = [
+            {
+                id: 'u_admin',
+                serviceNo: 'ADMIN',
+                rank: 'SUPER ADMIN',
+                name: 'Unit Super Admin',
+                branch: 'ADSO',
+                phone1: '',
+                phone2: '',
+                whatsapp: '',
+                pin: '9999',
+                role: 'admin',
+                status: 'Active'
+            },
+            {
+                id: 'u_30016',
+                serviceNo: '30016',
+                rank: 'WO',
+                name: 'GLNM SAMPATH',
+                branch: 'ADSO',
+                phone1: '076154007',
+                phone2: '',
+                whatsapp: '076154007',
+                pin: '1001',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_31040',
+                serviceNo: '31040',
+                rank: 'WO',
+                name: 'SAI ASANKA',
+                branch: 'ADSO',
+                phone1: '0771765785',
+                phone2: '',
+                whatsapp: '0771765785',
+                pin: '1002',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_31700',
+                serviceNo: '31700',
+                rank: 'F/SGT',
+                name: 'KUMARA SSWGSP',
+                branch: 'ADSO',
+                phone1: '0765803919',
+                phone2: '',
+                whatsapp: '0765803919',
+                pin: '1003',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_41016',
+                serviceNo: '41016',
+                rank: 'SGT',
+                name: 'FERNANDO MSN',
+                branch: 'ADSO',
+                phone1: '0761315454',
+                phone2: '',
+                whatsapp: '0761315454',
+                pin: '1004',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_33074',
+                serviceNo: '33074',
+                rank: 'F/SGT',
+                name: 'SADEEK AKM',
+                branch: 'AIR RADIO',
+                phone1: '0716595323',
+                phone2: '',
+                whatsapp: '0716595323',
+                pin: '1005',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_022654',
+                serviceNo: '022654',
+                rank: 'CPL',
+                name: 'BANDA PGN',
+                branch: 'CET',
+                phone1: '0702137544',
+                phone2: '',
+                whatsapp: '0702137544',
+                pin: '1006',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_014751',
+                serviceNo: '014751',
+                rank: 'F/SGT',
+                name: 'DESHAPPRIYA PADM',
+                branch: 'OMT',
+                phone1: '',
+                phone2: '',
+                whatsapp: '',
+                pin: '1007',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_aw5807',
+                serviceNo: 'AW 5807',
+                rank: 'LAC',
+                name: 'VIPULASENA',
+                branch: 'ADMIN ASSISTANT',
+                phone1: '0765759621',
+                phone2: '',
+                whatsapp: '0765759621',
+                pin: '1009',
+                role: 'officer',
+                status: 'Active'
+            },
+            {
+                id: 'u_30760',
+                serviceNo: '30760',
+                rank: 'F/SGT',
+                name: 'WICKRAMASINGHE',
+                branch: 'OPS GUARD',
+                phone1: '0740365499',
+                phone2: '',
+                whatsapp: '0740365499',
+                pin: '1008',
+                role: 'officer',
+                status: 'Active'
+            }
+        ];
+
+        const DEFAULT_REPORT = {
+            date: new Date().toISOString().split('T')[0],
+            unitName: 'ROMS — Radar Operation Management System',
+            keyDutyHeads: {
+                dutySncoId: 'u_31700',
+                crewChiefId: 'u_30016',
+                cdDutyId: 'u_31040'
+            },
+            parade: {
+                total: 10,
+                present: 8,
+                leave: 1,
+                duty: 0,
+                sick: 0,
+                medicalSick: 1,
+                course: 0,
+                attachOut: 0,
+                attachIn: 0
+            },
+            paradeNominalDetails: [
+                { id: 'pnd_1', category: 'Leave', userId: 'u_014751', note: 'Annual Leave' },
+                { id: 'pnd_2', category: 'Medical Sick', userId: 'u_aw5807', note: 'Base Hospital / Sick Report' }
+            ],
+            nightDuty: [
+                { id: 'nd1', dutyType: 'ADSO DUTY', userId: 'u_41016', shift: 'Night Shift (2000 - 0600 hrs)' },
+                { id: 'nd2', dutyType: 'RADAR FITTER DUTY', userId: 'u_022654', shift: 'Night Shift (2000 - 0600 hrs)' },
+                { id: 'nd3', dutyType: 'SENIOR PASSENGER GUARD DUTY', userId: 'u_30760', shift: '24 Hrs Duty' }
+            ],
+            briefing: "• රාත්‍රී 2100 න් පසු පරිශ්‍රයට ඇතුළු වන සියලුම වාහන දැඩි පරීක්ෂාවට ලක් කළ යුතුය.\n• සෑම පැයකට වරක්ම Ops Room වෙත Radio Check ලබා දිය යුතුය.\n• හදිසි අවස්ථාවකදී Duty SNCO / Crew Chief වහාම දැනුවත් කරන්න.",
+            yesterdayBackup: {
+                keyDutyHeads: { dutySncoId: 'u_31700', crewChiefId: 'u_30016', cdDutyId: 'u_31040' },
+                parade: { total: 10, present: 10, leave: 0, duty: 0, sick: 0, medicalSick: 0, course: 0, attachOut: 0, attachIn: 0 },
+                paradeNominalDetails: [],
+                briefing: "• සාමාන්‍ය රාත්‍රී මුර සංචාර සහ රේඩියෝ පරීක්ෂාවන් නියමිත පරිදි පවත්වන්න.\n• උදෑසන 0600 ට පෙර රාත්‍රී වාර්තාව සම්පූර්ණ කරන්න."
+            },
+            dailyOpsBriefing: {
+                dateLabel: '22nd of November 2026',
+                sd: 'Sqn Ldr Bandara',
+                aso: 'WO Udeshana',
+                orp: 'JB F-7 S/L Fernando',
+                nightWatchUnit: '03 ADRS',
+                nightWatchTime: '0010-0600hrs',
+                nightWatchStandby: '05 ADRS',
+                svcItems: [
+                    'No 01 ADRS MMI 1st Day 0800 - 1800hrs.',
+                    '06 ADRS fault rectification N/OPS from 1000hrs 17.11.2026 to 1800hrs 19.11.2026'
+                ],
+                trg: 'Nil',
+                recee: 'Nil',
+                vvip: 'Nil',
+                adPlanHeader: 'For Parliament session',
+                adPlanItems: [
+                    '0930-1430hrs  JY Radar  S/By-07',
+                    '1430-1830hrs  No 07 ADRS  S/By JY11 Radar'
+                ],
+                notamItems: [
+                    'CBY R/W CLSD for all civil fixed wing A/C ,available for emergency & military purposes (from 1400-1900hrs 21.09.2026 to 20.12.2026)',
+                    'Paragliding at Rathkelle south area 0800-1800hrs 6000ft',
+                    'Paragliding at Punagala  area 0800-1800hrs 6400ft',
+                    'DNG Area VCD-05 ACT 0700-1700hrs 10000ft',
+                    'DNG Area VCD-02 ACT 0800-1600hrs 10000ft'
+                ],
+                otherItems: [
+                    'Sky Club Paramotor at Bentota 0830-1830hrs',
+                    'Lanka Ballons operate at Dambulla'
+                ],
+                updatedBy: 'WO GLNM SAMPATH (30016 - ADSO)',
+                updatedAt: '2026-11-22 • 07:15 PM'
+            },
+            specialAlert: {
+                active: true,
+                title: 'විශේෂ මෙහෙයුම් සහ ආරක්ෂක දැනුම්දීම',
+                message: 'අද රාත්‍රී රාජකාරියේ යෙදෙන සියලුම නිලධාරීන් නියමිත වේලාවට පෙර Ops Room වෙත වාර්තා කර Briefing ලබා ගන්න.',
+                postedBy: 'SUPER ADMIN Unit Super Admin',
+                time: '05:45 PM'
+            },
+            lastUpdatedBy: 'SGT FERNANDO MSN (41016)',
+            lastUpdatedAt: '06:30 PM',
+            qrTokenVersion: 1
+        };
+
+        const DEFAULT_SEEN_LOGS = [
+            { userId: 'u_41016', time: '06:31 PM', remark: 'Ops Room රාජකාරි සඳහා සූදානම්.' },
+            { userId: 'u_30016', time: '06:40 PM', remark: 'සටහන් කර ගත්තා.' }
+        ];
+
+        const DEFAULT_SPECIAL_NOTICES = [
+            {
+                id: 'sn_1',
+                title: 'හෙට උදෑසන පරීක්ෂණය - ADSO & AIR RADIO',
+                message: 'හෙට උදෑසන 0800 ට පැවැත්වෙන පරීක්ෂණය සඳහා සියලුම උපකරණ සහ ලේඛන සූදානම් කර තබා අදාළ ක්‍රියාමාර්ගය පිළිතුරු ලෙස එවන්න.',
+                senderId: 'u_admin',
+                senderName: 'SUPER ADMIN Unit Super Admin',
+                createdAt: '06:15 PM',
+                recipientIds: ['u_30016', 'u_31040', 'u_33074'],
+                responses: [
+                    {
+                        userId: 'u_30016',
+                        status: 'ක්‍රියාත්මක කළා / Action Taken',
+                        replyText: 'ADSO අංශයේ සියලුම ලේඛන පරීක්ෂා කර සූදානම් කර ඇත.',
+                        time: '06:45 PM'
+                    }
+                ]
+            }
+        ];
+
+        const DEFAULT_AUDIT_LOGS = [
+            { id: 'al1', time: '06:15 PM', user: 'SUPER ADMIN Unit Super Admin (ADMIN)', mode: 'Admin Portal', action: 'ADSO සහ AIR RADIO නිලධාරීන් 3 දෙනෙකුට විශේෂ පණිවිඩයක් (Special Notice) යවන ලදී.' },
+            { id: 'al2', time: '06:30 PM', user: 'SGT FERNANDO MSN (41016)', mode: 'Duty Handover QR', action: 'දෛනික පෙළපාලි වාර්තාව සහ Night Briefing යාවත්කාලීන කරන ලදී.' },
+            { id: 'al3', time: '06:40 PM', user: 'WO GLNM SAMPATH (30016)', mode: 'General QR', action: 'දෛනික වාර්තාව බලා තහවුරු කළේය (Seen).' }
+        ];
+
+        // ==========================================
+        // 2. SORTING, ESCAPING, FORMATTING & STATE PERSISTENCE
+        // ==========================================
+        function escapeHTML(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function extractNumericSerNo(serNo) {
+            const digits = String(serNo || '').replace(/\D/g, '');
+            return digits ? parseInt(digits, 10) : Number.MAX_SAFE_INTEGER;
+        }
+
+        function sortNominalRoll(list) {
+            return [...list].map(u => ({
+                ...u,
+                branch: normalizeBranchName(u.branch),
+                rank: normalizeRankName(u.rank)
+            })).sort((a, b) => {
+                const idxA = STANDARD_BRANCHES.indexOf(a.branch);
+                const idxB = STANDARD_BRANCHES.indexOf(b.branch);
+                const orderA = idxA === -1 ? 999 : idxA;
+                const orderB = idxB === -1 ? 999 : idxB;
+
+                if (orderA !== orderB) {
+                    return orderA - orderB;
+                }
+                if (a.branch !== b.branch) {
+                    return a.branch.localeCompare(b.branch);
+                }
+                const numA = extractNumericSerNo(a.serviceNo);
+                const numB = extractNumericSerNo(b.serviceNo);
+                if (numA !== numB) {
+                    return numA - numB;
+                }
+                return String(a.serviceNo).localeCompare(String(b.serviceNo));
+            });
+        }
+
+        function formatWhatsAppLinkNumber(rawNum) {
+            if (!rawNum) return '';
+            const clean = String(rawNum).replace(/\D/g, '');
+            if (!clean) return '';
+            if (clean.startsWith('0')) return '94' + clean.slice(1);
+            if (!clean.startsWith('94') && clean.length === 9) return '94' + clean;
+            return clean;
+        }
+
+        const storedNominal = JSON.parse(localStorage.getItem('ops3_nominal'));
+        const storedReport = JSON.parse(localStorage.getItem('ops3_report'));
+        const mergedReport = storedReport ? {
+            ...DEFAULT_REPORT,
+            ...storedReport,
+            keyDutyHeads: { ...DEFAULT_REPORT.keyDutyHeads, ...(storedReport.keyDutyHeads || {}) },
+            parade: { ...DEFAULT_REPORT.parade, ...(storedReport.parade || {}) },
+            paradeNominalDetails: Array.isArray(storedReport.paradeNominalDetails) ? storedReport.paradeNominalDetails : DEFAULT_REPORT.paradeNominalDetails,
+            nightDuty: Array.isArray(storedReport.nightDuty)
+                ? storedReport.nightDuty.map(d => ({
+                    ...d,
+                    dutyType: d.dutyType || d.post || 'ADSO DUTY'
+                }))
+                : DEFAULT_REPORT.nightDuty
+        } : DEFAULT_REPORT;
+
+        let state = {
+            nominalRoll: sortNominalRoll(storedNominal || DEFAULT_NOMINAL_ROLL),
+            report: mergedReport,
+            seenLogs: JSON.parse(localStorage.getItem('ops3_seen')) || DEFAULT_SEEN_LOGS,
+            specialNotices: JSON.parse(localStorage.getItem('ops3_notices')) || DEFAULT_SPECIAL_NOTICES,
+            auditLogs: JSON.parse(localStorage.getItem('ops3_audit')) || DEFAULT_AUDIT_LOGS,
+            session: null,
+            loginStep: 'qr_select',
+            selectedQrMode: 'general',
+            selectedLoginUserId: '',
+            pinBuffer: '',
+            activeTab: 'briefing',
+            nominalFilterGroup: 'ALL',
+            nominalSearch: '',
+            cloudStatus: 'Connecting...',
+            cloudErrorDetail: ''
+        };
+
+        // ==========================================
+        // 2B. SUPABASE CLOUD SYNC & REALTIME LAYER
+        // ==========================================
+        const ROMS_SUPABASE_CONFIG = {
+            url: 'https://kzavddfiehjyvmusbcsx.supabase.co',
+            anonKey: 'sb_publishable_aDvT3Mo7Y2ry0V-W98qwUg_IjOCuHN_'
+        };
+
+        let romsSupabaseClient = null;
+        let isPullingFromCloud = false;
+
+        async function hashPinSHA256(pinText) {
+            try {
+                if (window.crypto && window.crypto.subtle) {
+                    const enc = new TextEncoder().encode(String(pinText || ''));
+                    const buf = await window.crypto.subtle.digest('SHA-256', enc);
+                    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                }
+            } catch (e) { /* fallback below */ }
+            return 'plain_' + String(pinText || '');
+        }
+
+        function getSupabaseClient() {
+            if (!romsSupabaseClient && typeof window.supabase !== 'undefined') {
+                romsSupabaseClient = window.supabase.createClient(ROMS_SUPABASE_CONFIG.url, ROMS_SUPABASE_CONFIG.anonKey);
+            }
+            return romsSupabaseClient;
+        }
+
+        function saveLocalCacheOnly() {
+            state.nominalRoll = sortNominalRoll(state.nominalRoll);
+            localStorage.setItem('ops3_nominal', JSON.stringify(state.nominalRoll));
+            localStorage.setItem('ops3_report', JSON.stringify(state.report));
+            localStorage.setItem('ops3_seen', JSON.stringify(state.seenLogs));
+            localStorage.setItem('ops3_notices', JSON.stringify(state.specialNotices));
+            localStorage.setItem('ops3_audit', JSON.stringify(state.auditLogs));
+        }
+
+        async function syncStateToSupabase() {
+            const client = getSupabaseClient();
+            if (!client || isPullingFromCloud) return;
+
+            try {
+                state.cloudStatus = 'Syncing...';
+                state.cloudErrorDetail = '';
+                render();
+
+                // 1. Sync main report
+                const { error: repErr } = await client.from('daily_reports').upsert({
+                    id: 'main_report',
+                    report_data: state.report,
+                    updated_at: new Date().toISOString()
+                });
+                if (repErr) throw repErr;
+
+                // 2. Sync nominal roll (also delete removed users)
+                const nominalRows = await Promise.all(state.nominalRoll.map(async (u) => ({
+                    id: u.id,
+                    service_no: u.serviceNo,
+                    rank: u.rank,
+                    full_name: u.name,
+                    branch: u.branch,
+                    phone1: u.phone1 || '',
+                    phone2: u.phone2 || '',
+                    whatsapp: u.whatsapp || '',
+                    pin_hash: await hashPinSHA256(u.pin),
+                    role: u.role || 'officer',
+                    status: u.status || 'Active',
+                    updated_at: new Date().toISOString()
+                })));
+                if (nominalRows.length > 0) {
+                    const { error: nomErr } = await client.from('nominal_roll').upsert(nominalRows);
+                    if (nomErr) throw nomErr;
+                }
+
+                // 3. Sync seen logs
+                const seenRows = state.seenLogs.map(s => ({
+                    user_id: s.userId,
+                    seen_time: s.time,
+                    remark: s.remark || '',
+                    updated_at: new Date().toISOString()
+                }));
+                if (seenRows.length > 0) {
+                    const { error: seenErr } = await client.from('seen_logs').upsert(seenRows);
+                    if (seenErr) throw seenErr;
+                }
+
+                // 4. Sync special notices
+                const noticeRows = state.specialNotices.map(n => ({
+                    id: n.id,
+                    notice_data: n,
+                    created_at: new Date().toISOString()
+                }));
+                if (noticeRows.length > 0) {
+                    const { error: notErr } = await client.from('special_notices').upsert(noticeRows);
+                    if (notErr) throw notErr;
+                }
+
+                // 5. Sync latest audit logs
+                const auditRows = state.auditLogs.slice(0, 100).map(a => ({
+                    id: a.id,
+                    log_time: a.time,
+                    actor: a.user,
+                    mode_label: a.mode,
+                    action_text: a.action,
+                    created_at: new Date().toISOString()
+                }));
+                if (auditRows.length > 0) {
+                    const { error: audErr } = await client.from('audit_logs').upsert(auditRows);
+                    if (audErr) throw audErr;
+                }
+
+                state.cloudStatus = 'Cloud Synced ✓';
+                render();
+            } catch (err) {
+                console.error('Supabase Sync Error:', err);
+                state.cloudStatus = 'Sync Error';
+                state.cloudErrorDetail = err?.message || 'RLS Policy හෝ API Key පරීක්ෂා කරන්න.';
+                showToast('Cloud Sync දෝෂය: ' + state.cloudErrorDetail, 'error');
+                render();
+            }
+        }
+
+        async function pullInitialCloudState(silent = false) {
+            const client = getSupabaseClient();
+            if (!client) {
+                state.cloudStatus = 'Offline Mode';
+                render();
+                return;
+            }
+            try {
+                isPullingFromCloud = true;
+
+                // 1. Pull daily_reports
+                const { data: repRows, error: repErr } = await client
+                    .from('daily_reports')
+                    .select('report_data')
+                    .eq('id', 'main_report')
+                    .maybeSingle();
+
+                if (repErr) throw repErr;
+
+                if (repRows && repRows.report_data) {
+                    state.report = {
+                        ...DEFAULT_REPORT,
+                        ...repRows.report_data,
+                        keyDutyHeads: { ...DEFAULT_REPORT.keyDutyHeads, ...(repRows.report_data.keyDutyHeads || {}) },
+                        parade: { ...DEFAULT_REPORT.parade, ...(repRows.report_data.parade || {}) }
+                    };
+                } else {
+                    // First time setup: push initial report to empty cloud table
+                    isPullingFromCloud = false;
+                    await syncStateToSupabase();
+                    return;
+                }
+
+                // 2. Pull nominal_roll
+                const { data: nomRows, error: nomErr } = await client.from('nominal_roll').select('*');
+                if (nomErr) throw nomErr;
+                if (Array.isArray(nomRows) && nomRows.length > 0) {
+                    const localPinMap = new Map(state.nominalRoll.map(u => [u.id, u.pin]));
+                    state.nominalRoll = sortNominalRoll(nomRows.map(r => ({
+                        id: r.id,
+                        serviceNo: r.service_no,
+                        rank: r.rank,
+                        name: r.full_name,
+                        branch: r.branch,
+                        phone1: r.phone1 || '',
+                        phone2: r.phone2 || '',
+                        whatsapp: r.whatsapp || '',
+                        pin: localPinMap.get(r.id) || '',
+                        pinHash: r.pin_hash,
+                        role: r.role || 'officer',
+                        status: r.status || 'Active'
+                    })));
+                }
+
+                // 3. Pull seen_logs
+                const { data: seenRows, error: seenErr } = await client.from('seen_logs').select('*');
+                if (!seenErr && Array.isArray(seenRows)) {
+                    state.seenLogs = seenRows.map(s => ({
+                        userId: s.user_id,
+                        time: s.seen_time,
+                        remark: s.remark || ''
+                    }));
+                }
+
+                // 4. Pull special_notices
+                const { data: noticeRows, error: notErr } = await client.from('special_notices').select('notice_data');
+                if (!notErr && Array.isArray(noticeRows) && noticeRows.length > 0) {
+                    state.specialNotices = noticeRows.map(n => n.notice_data);
+                }
+
+                // 5. Pull audit_logs
+                const { data: auditRows, error: audErr } = await client
+                    .from('audit_logs')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+                if (!audErr && Array.isArray(auditRows) && auditRows.length > 0) {
+                    state.auditLogs = auditRows.map(a => ({
+                        id: a.id,
+                        time: a.log_time,
+                        user: a.actor,
+                        mode: a.mode_label,
+                        action: a.action_text
+                    }));
+                }
+
+                saveLocalCacheOnly();
+                state.cloudStatus = 'Cloud Live ●';
+                state.cloudErrorDetail = '';
+                isPullingFromCloud = false;
+                render();
+                if (!silent) {
+                    showToast('Cloud දත්ත යාවත්කාලීන විය!', 'success');
+                }
+            } catch (err) {
+                isPullingFromCloud = false;
+                console.error('Supabase Pull Error:', err);
+                state.cloudStatus = 'Sync Error';
+                state.cloudErrorDetail = err?.message || 'Supabase RLS / Key දෝෂයකි.';
+                render();
+            }
+        }
+
+        function setupRealtimeSubscription() {
+            const client = getSupabaseClient();
+            if (!client) return;
+            try {
+                client
+                    .channel('roms-live-updates')
+                    .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+                        if (!isPullingFromCloud) {
+                            pullInitialCloudState(true);
+                        }
+                    })
+                    .subscribe();
+            } catch (e) {
+                console.warn('Realtime fallback active');
+            }
+        }
+
+        function saveState() {
+            saveLocalCacheOnly();
+            syncStateToSupabase();
+        }
+
+        function getActivePersonnel() {
+            return sortNominalRoll(state.nominalRoll.filter(p => p.status === 'Active'));
+        }
+
+        function getUserById(id) {
+            if (!id) return null;
+            return state.nominalRoll.find(p => p.id === id) || null;
+        }
+
+        function canEditOpsBriefing(user) {
+            if (!user) return false;
+            return normalizeBranchName(user.branch) === 'ADSO' || user.role === 'admin';
+        }
+
+        function getFormattedOrdinalDate(dateObj = new Date()) {
+            const day = dateObj.getDate();
+            const suffix = (day % 10 === 1 && day !== 11) ? 'st'
+                : (day % 10 === 2 && day !== 12) ? 'nd'
+                : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${day}${suffix} of ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        }
+
+        function getCurrentTimeStr() {
+            return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        function getCurrentDateTimeStamp() {
+            const today = new Date().toISOString().split('T')[0];
+            return `${today} • ${getCurrentTimeStr()}`;
+        }
+
+        function logAudit(userObj, modeLabel, actionText) {
+            state.auditLogs.unshift({
+                id: 'al_' + Date.now(),
+                time: getCurrentTimeStr(),
+                user: `${userObj.rank} ${userObj.name} (${userObj.serviceNo})`,
+                mode: modeLabel,
+                action: actionText
+            });
+            saveState();
+        }
+
+        // ==========================================
+        // 3. UI NOTIFICATIONS & MODALS
+        // ==========================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const styles = {
+                success: 'bg-emerald-600 text-white border-emerald-400',
+                error: 'bg-rose-600 text-white border-rose-400',
+                warning: 'bg-amber-600 text-white border-amber-400',
+                info: 'bg-slate-800 text-white border-slate-600'
+            };
+            toast.className = `${styles[type]} px-4 py-3 rounded-xl shadow-xl border text-xs font-semibold flex items-center gap-2.5 fade-in pointer-events-auto`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle-2' : type === 'error' ? 'alert-octagon' : 'info'}" class="w-4 h-4 shrink-0"></i>
+                <span>${escapeHTML(message)}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-6px)';
+                toast.style.transition = 'all 0.2s ease';
+                setTimeout(() => toast.remove(), 200);
+            }, 3500);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-container');
+            modal.classList.add('hidden');
+            modal.innerHTML = '';
+        }
+
+        // ==========================================
+        // 4. QR CODE GENERATOR & MODAL
+        // ==========================================
+        function generateQRSVG(seedText, color = '#0f172a') {
+            let hash = 0;
+            for (let i = 0; i < seedText.length; i++) {
+                hash = ((hash << 5) - hash) + seedText.charCodeAt(i);
+                hash |= 0;
+            }
+            const size = 21;
+            let cells = '';
+            const isFinder = (r, c) => (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
+
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (isFinder(r, c)) continue;
+                    const val = Math.abs(Math.sin(hash + r * 29 + c * 13));
+                    if (val > 0.47) {
+                        cells += `<rect x="${c + 2}" y="${r + 2}" width="1" height="1" fill="${color}" rx="0.15"/>`;
+                    }
+                }
+            }
+            const finder = (x, y) => `
+                <rect x="${x}" y="${y}" width="7" height="7" fill="none" stroke="${color}" stroke-width="1"/>
+                <rect x="${x + 2}" y="${y + 2}" width="3" height="3" fill="${color}"/>
+            `;
+            return `
+                <svg viewBox="0 0 25 25" class="w-36 h-36 mx-auto bg-white p-2 rounded-xl border-2 border-slate-200 shadow-inner">
+                    ${finder(2.5, 2.5)}${finder(15.5, 2.5)}${finder(2.5, 15.5)}${cells}
+                </svg>
+            `;
+        }
+
+        function openQRModal() {
+            const modal = document.getElementById('modal-container');
+            const v = state.report.qrTokenVersion;
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[430px] rounded-2xl shadow-2xl overflow-hidden fade-in max-h-[90vh] flex flex-col">
+                    <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="qr-code" class="w-5 h-5 text-blue-400"></i>
+                            <h3 class="font-bold text-sm">ROMS QR කේත (QR Access Tokens v${v}.0)</h3>
+                        </div>
+                        <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 overflow-y-auto space-y-4">
+                        <div class="border border-blue-200 rounded-2xl p-4 text-center bg-blue-50/40">
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 mb-2">
+                                1. GENERAL QR (සක්‍රීය නිලධාරීන් සඳහා)
+                            </span>
+                            ${generateQRSVG('ROMS_GEN_QR_V' + v, '#1e3a8a')}
+                            <p class="text-[11px] text-slate-600 mt-2">දෛනික වාර්තා බැලීමට, Seen කිරීමට සහ විශේෂ පණිවිඩ සඳහා</p>
+                            <button onclick="closeModal(); selectQRMode('general')" class="mt-2.5 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl btn-press">
+                                General QR Scan කළා සේ පිවිසෙන්න →
+                            </button>
+                        </div>
+
+                        <div class="border-2 border-amber-300 rounded-2xl p-4 text-center bg-amber-50/50">
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 mb-2">
+                                2. DUTY HANDOVER QR (අද Duty භාර කෙනාට)
+                            </span>
+                            ${generateQRSVG('ROMS_DUTY_QR_V' + v, '#92400e')}
+                            <p class="text-[11px] text-slate-600 mt-2">Duty Room හි ඇත. පෙළපාලි වාර්තාව සහ Night Briefing Update කිරීමට</p>
+                            <button onclick="closeModal(); selectQRMode('duty')" class="mt-2.5 w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl btn-press">
+                                Duty Handover QR Scan කළා සේ පිවිසෙන්න →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 5. AUTHENTICATION & NOMINAL ROLL ENFORCEMENT
+        // ==========================================
+        function selectQRMode(mode) {
+            state.selectedQrMode = mode;
+            state.loginStep = 'pin_entry';
+            state.selectedLoginUserId = '';
+            state.pinBuffer = '';
+            render();
+        }
+
+        function backToQRSelect() {
+            state.loginStep = 'qr_select';
+            state.selectedLoginUserId = '';
+            state.pinBuffer = '';
+            render();
+        }
+
+        function handlePinDigit(digit) {
+            if (state.pinBuffer.length < 4) {
+                state.pinBuffer += digit;
+                render();
+                if (state.pinBuffer.length === 4) {
+                    setTimeout(verifyPinLogin, 150);
+                }
+            }
+        }
+
+        function handlePinBackspace() {
+            state.pinBuffer = state.pinBuffer.slice(0, -1);
+            render();
+        }
+
+        function quickDemoLogin(pin, modeOverride = null) {
+            if (modeOverride) state.selectedQrMode = modeOverride;
+            state.selectedLoginUserId = '';
+            state.pinBuffer = pin;
+            verifyPinLogin();
+        }
+
+        async function verifyPinLogin() {
+            let user = null;
+            const enteredHash = await hashPinSHA256(state.pinBuffer);
+
+            if (state.selectedLoginUserId) {
+                const candidate = getUserById(state.selectedLoginUserId);
+                if (candidate && (candidate.pin === state.pinBuffer || (candidate.pinHash && candidate.pinHash === enteredHash))) {
+                    user = candidate;
+                }
+            } else {
+                user = state.nominalRoll.find(u => u.pin === state.pinBuffer || (u.pinHash && u.pinHash === enteredHash));
+            }
+
+            if (!user) {
+                showToast('වැරදි PIN අංකයකි! නැවත උත්සාහ කරන්න.', 'error');
+                state.pinBuffer = '';
+                render();
+                return;
+            }
+
+            if (user.status !== 'Active') {
+                showToast(`පිවිසුම අවලංගුයි! ${user.rank} ${user.name} (Posted Out) ලෙස සටහන්ව ඇත.`, 'error');
+                state.pinBuffer = '';
+                render();
+                return;
+            }
+
+            if (state.selectedQrMode === 'admin' && user.role !== 'admin') {
+                showToast('Super Admin පිවිසුම සඳහා Admin PIN අවශ්‍ය වේ.', 'error');
+                state.pinBuffer = '';
+                render();
+                return;
+            }
+
+            const effectiveMode = (user.role === 'admin' && state.selectedQrMode === 'admin') ? 'admin' : state.selectedQrMode;
+            const modeLabels = {
+                general: 'General QR',
+                duty: 'Duty Handover QR',
+                admin: 'Super Admin Portal'
+            };
+
+            state.session = {
+                user,
+                mode: effectiveMode,
+                loginTime: getCurrentTimeStr()
+            };
+
+            if (effectiveMode === 'admin') {
+                state.activeTab = 'nominal';
+            } else if (effectiveMode === 'duty') {
+                state.activeTab = 'update';
+            } else {
+                state.activeTab = 'briefing';
+            }
+
+            logAudit(user, modeLabels[effectiveMode], 'ROMS පද්ධතියට ඇතුළු විය (Logged In).');
+            showToast(`ආයුබෝවන්, ${user.rank} ${user.name}!`, 'success');
+            render();
+        }
+
+        function logout() {
+            if (state.session) {
+                logAudit(state.session.user, 'System', 'ROMS පද්ධතියෙන් ඉවත් විය (Logged Out).');
+            }
+            state.session = null;
+            state.loginStep = 'qr_select';
+            state.pinBuffer = '';
+            render();
+        }
+
+        // ==========================================
+        // 6. DAILY BRIEFING, SEEN LOG & SPECIAL ALERT
+        // ==========================================
+        function acknowledgeDailyReport() {
+            const user = state.session.user;
+            const remarkEl = document.getElementById('briefing-remark-input');
+            const remark = remarkEl ? remarkEl.value.trim() : '';
+            const timeStr = getCurrentTimeStr();
+
+            const idx = state.seenLogs.findIndex(s => s.userId === user.id);
+            const entry = {
+                userId: user.id,
+                time: timeStr,
+                remark: remark || (idx >= 0 ? state.seenLogs[idx].remark : '')
+            };
+
+            if (idx >= 0) {
+                state.seenLogs[idx] = entry;
+            } else {
+                state.seenLogs.push(entry);
+            }
+
+            logAudit(
+                user,
+                state.session.mode === 'duty' ? 'Duty Handover QR' : 'General QR',
+                remark ? `දෛනික වාර්තාව බලා Remark එක් කළේය: "${remark}"` : 'දෛනික වාර්තාව බලා තහවුරු කළේය (Seen).'
+            );
+            saveState();
+            showToast('ඔබ පණිවිඩය බැලූ බව සැමට පෙනෙන ලෙස සටහන් විය!', 'success');
+            render();
+        }
+
+        function openPostSpecialAlertModal() {
+            const alertObj = state.report.specialAlert || { active: false, title: '', message: '' };
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[430px] rounded-2xl shadow-2xl overflow-hidden fade-in">
+                    <div class="bg-rose-700 text-white px-5 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="siren" class="w-5 h-5"></i>
+                            <h3 class="font-bold text-sm">විශේෂ හදිසි දැනුම්දීම (Special Alert)</h3>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-rose-800 text-rose-100">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <p class="text-xs text-slate-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl">
+                            මෙම දැනුම්දීම පද්ධතියට ඇතුළු වන <strong>සියලුම දෙනාට</strong> තිරයේ ඉහළින්ම රතු පැහැති Alert එකක් ලෙස දිස්වේ.
+                        </p>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">මාතෘකාව (Alert Title):</label>
+                            <input id="alert-title-input" type="text" value="${escapeHTML(alertObj.title || '')}" placeholder="උදා: හදිසි රැස්වීමක් / ආරක්ෂක අවවාදය" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">පණිවිඩය (Alert Message):</label>
+                            <textarea id="alert-msg-input" rows="3" placeholder="සියලුම නිලධාරීන් වෙත දැනුම් දෙන විශේෂ පණිවිඩය..." class="w-full p-3 text-xs rounded-xl border border-slate-300">${escapeHTML(alertObj.message || '')}</textarea>
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <button onclick="saveSpecialAlert(true)" class="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl btn-press">
+                                🚨 Alert එක පළ කරන්න
+                            </button>
+                            ${alertObj.active ? `
+                                <button onclick="saveSpecialAlert(false)" class="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl btn-press">
+                                    ඉවත් කරන්න
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function saveSpecialAlert(isActive) {
+            const title = document.getElementById('alert-title-input')?.value.trim() || '';
+            const message = document.getElementById('alert-msg-input')?.value.trim() || '';
+            const user = state.session.user;
+
+            if (isActive && (!title || !message)) {
+                showToast('මාතෘකාව සහ පණිවිඩය ඇතුළත් කරන්න.', 'warning');
+                return;
+            }
+
+            state.report.specialAlert = {
+                active: isActive,
+                title,
+                message,
+                postedBy: `${user.rank} ${user.name}`,
+                time: getCurrentTimeStr()
+            };
+
+            logAudit(user, 'Special Alert', isActive ? `සැමට පෙනෙන විශේෂ Alert එකක් පළ කළේය: "${title}"` : 'Special Alert ඉවත් කළේය.');
+            saveState();
+            closeModal();
+            showToast(isActive ? 'විශේෂ Alert එක සැමට පෙනෙන පරිදි පළ විය!' : 'Alert එක ඉවත් කරන ලදී.', isActive ? 'warning' : 'info');
+            render();
+        }
+
+        // ==========================================
+        // 7. TARGETED SPECIAL NOTICES (SECURE & REPLY)
+        // ==========================================
+        function openCreateSpecialNoticeModal() {
+            const activeUsers = getActivePersonnel();
+            const branches = ['ALL', ...STANDARD_BRANCHES.filter(b => activeUsers.some(u => u.branch === b))];
+            const modal = document.getElementById('modal-container');
+
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[440px] rounded-2xl shadow-2xl overflow-hidden fade-in max-h-[92vh] flex flex-col">
+                    <div class="bg-indigo-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400"></i>
+                            <h3 class="font-bold text-sm">තෝරාගත් පිරිසට විශේෂ පණිවිඩයක් (Special Notice)</h3>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-indigo-800 text-indigo-200">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-4 overflow-y-auto space-y-3.5">
+                        <div class="bg-indigo-50 border border-indigo-200 p-2.5 rounded-xl text-[11px] text-indigo-900">
+                            🔒 <strong>ආරක්ෂිත පණිවිඩ:</strong> මෙහිදී ඔබ තෝරන නිලධාරීන්ට පමණක් මෙම පණිවිඩය දිස්වේ. ඔවුන්ට කළ ක්‍රියාමාර්ගය සඳහන් කර පිළිතුරු එවිය හැක.
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">පණිවිඩයේ මාතෘකාව (Subject):</label>
+                            <input id="sn-title" type="text" placeholder="උදා: රහස්‍ය මෙහෙයුම් උපදෙස් / වාහන පරීක්ෂාව" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">පණිවිඩ විස්තරය (Message):</label>
+                            <textarea id="sn-body" rows="3" placeholder="අදාළ නිලධාරීන් වෙත යැවිය යුතු උපදෙස්..." class="w-full p-3 text-xs rounded-xl border border-slate-300"></textarea>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-xs font-bold text-slate-700">ලැබිය යුතු අය තෝරන්න (Select Recipients):</label>
+                                <div class="flex gap-1">
+                                    <button type="button" onclick="toggleAllNoticeRecipients(true)" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">සියල්ල</button>
+                                    <button type="button" onclick="toggleAllNoticeRecipients(false)" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">ඉවත්</button>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-1.5 overflow-x-auto pb-2">
+                                ${branches.map(b => `
+                                    <button type="button" onclick="selectRecipientsByBranch('${escapeHTML(b)}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-100 border border-slate-300 text-[10px] font-bold text-slate-700 shrink-0">
+                                        ${b === 'ALL' ? 'සියලු Branches' : escapeHTML(b)}
+                                    </button>
+                                `).join('')}
+                            </div>
+
+                            <div class="border border-slate-200 rounded-xl max-h-44 overflow-y-auto divide-y divide-slate-100 bg-slate-50">
+                                ${activeUsers.map(u => `
+                                    <label class="flex items-center justify-between p-2.5 hover:bg-white cursor-pointer">
+                                        <div class="flex items-center gap-2.5">
+                                            <input type="checkbox" name="sn-recipient" value="${u.id}" data-branch="${escapeHTML(u.branch)}" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                                            <div>
+                                                <div class="text-xs font-bold text-slate-800">${escapeHTML(u.rank)} ${escapeHTML(u.name)}</div>
+                                                <div class="text-[10px] text-slate-500">${escapeHTML(u.serviceNo)} • ${escapeHTML(u.branch)}</div>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-700">${escapeHTML(u.branch)}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <button onclick="submitNewSpecialNotice()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 btn-press">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            <span>තෝරාගත් අයට පමණක් පණිවිඩය යවන්න</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function toggleAllNoticeRecipients(checked) {
+            document.querySelectorAll('input[name="sn-recipient"]').forEach(cb => cb.checked = checked);
+        }
+
+        function selectRecipientsByBranch(branch) {
+            document.querySelectorAll('input[name="sn-recipient"]').forEach(cb => {
+                if (branch === 'ALL') {
+                    cb.checked = true;
+                } else {
+                    cb.checked = (cb.getAttribute('data-branch') === branch);
+                }
+            });
+        }
+
+        function submitNewSpecialNotice() {
+            const title = document.getElementById('sn-title').value.trim();
+            const message = document.getElementById('sn-body').value.trim();
+            const selectedIds = Array.from(document.querySelectorAll('input[name="sn-recipient"]:checked')).map(cb => cb.value);
+
+            if (!title || !message) {
+                showToast('පණිවිඩයේ මාතෘකාව සහ විස්තරය ඇතුළත් කරන්න.', 'warning');
+                return;
+            }
+            if (selectedIds.length === 0) {
+                showToast('අවම වශයෙන් එක් නිලධාරියෙකු හෝ තෝරන්න.', 'warning');
+                return;
+            }
+
+            const sender = state.session.user;
+            const newNotice = {
+                id: 'sn_' + Date.now(),
+                title,
+                message,
+                senderId: sender.id,
+                senderName: `${sender.rank} ${sender.name}`,
+                createdAt: getCurrentTimeStr(),
+                recipientIds: selectedIds,
+                responses: []
+            };
+
+            state.specialNotices.unshift(newNotice);
+            logAudit(sender, 'Special Notice', `නිලධාරීන් ${selectedIds.length} දෙනෙකුට විශේෂ පණිවිඩයක් යවන ලදී: "${title}"`);
+            saveState();
+            closeModal();
+            showToast(`තෝරාගත් ${selectedIds.length} දෙනාට පණිවිඩය යවන ලදී!`, 'success');
+            render();
+        }
+
+        function submitNoticeResponse(noticeId) {
+            const notice = state.specialNotices.find(n => n.id === noticeId);
+            if (!notice) return;
+
+            const statusEl = document.getElementById(`resp-status-${noticeId}`);
+            const textEl = document.getElementById(`resp-text-${noticeId}`);
+            const statusVal = statusEl.value;
+            const replyText = textEl.value.trim();
+
+            if (!replyText) {
+                showToast('ඔබ ගත් ක්‍රියාමාර්ගය හෝ පිළිතුර Type කරන්න.', 'warning');
+                return;
+            }
+
+            const user = state.session.user;
+            const existingIdx = notice.responses.findIndex(r => r.userId === user.id);
+            const respObj = {
+                userId: user.id,
+                status: statusVal,
+                replyText,
+                time: getCurrentTimeStr()
+            };
+
+            if (existingIdx >= 0) {
+                notice.responses[existingIdx] = respObj;
+            } else {
+                notice.responses.push(respObj);
+            }
+
+            logAudit(user, 'Special Notice Reply', `"${notice.title}" සඳහා පිළිතුරු යැවීය (${statusVal}): ${replyText}`);
+            saveState();
+            showToast('ඔබගේ පිළිතුර සහ ක්‍රියාමාර්ගය යවන ලදී!', 'success');
+            render();
+        }
+
+        // ==========================================
+        // 8. DUTY EDITOR (KEY HEADS, PARADE BREAKDOWN & DUTIES)
+        // ==========================================
+        function loadYesterdaysReport() {
+            if (state.report.yesterdayBackup) {
+                state.report.parade = { ...state.report.yesterdayBackup.parade };
+                state.report.briefing = state.report.yesterdayBackup.briefing;
+                if (state.report.yesterdayBackup.keyDutyHeads) {
+                    state.report.keyDutyHeads = { ...state.report.yesterdayBackup.keyDutyHeads };
+                }
+                if (state.report.yesterdayBackup.paradeNominalDetails) {
+                    state.report.paradeNominalDetails = [...state.report.yesterdayBackup.paradeNominalDetails];
+                }
+                showToast('කලින් දවසේ වාර්තා ආකෘතිය Load විය!', 'info');
+                render();
+            }
+        }
+
+        function updateKeyDutyHead(roleKey, userId) {
+            state.report.keyDutyHeads[roleKey] = userId;
+            render();
+        }
+
+        function recalculateParadeTotal() {
+            const p = state.report.parade;
+            p.total = (p.present || 0) + (p.leave || 0) + (p.duty || 0) + (p.sick || 0) + (p.medicalSick || 0) + (p.course || 0) + (p.attachOut || 0) + (p.attachIn || 0);
+        }
+
+        function adjustParadeCount(field, delta) {
+            const val = parseInt(state.report.parade[field] || 0, 10) + delta;
+            if (val < 0) return;
+            state.report.parade[field] = val;
+            recalculateParadeTotal();
+            render();
+        }
+
+        function addParadeNominalDetail() {
+            const cat = document.getElementById('pnd-cat-select').value;
+            const userId = document.getElementById('pnd-user-select').value;
+            const note = document.getElementById('pnd-note-input').value.trim();
+
+            if (!userId) return;
+
+            state.report.paradeNominalDetails.push({
+                id: 'pnd_' + Date.now(),
+                category: cat,
+                userId,
+                note
+            });
+            render();
+            showToast(`${cat} සඳහා සාමාජිකයා සටහන් කරන ලදී.`, 'success');
+        }
+
+        function removeParadeNominalDetail(id) {
+            state.report.paradeNominalDetails = state.report.paradeNominalDetails.filter(item => item.id !== id);
+            render();
+        }
+
+        function addDutyAssignment() {
+            const dutyTypeSelect = document.getElementById('nd-duty-type-select').value;
+            const customDutyText = document.getElementById('nd-custom-duty-input').value.trim();
+            const dutyType = dutyTypeSelect === 'CUSTOM' ? (customDutyText.toUpperCase() || 'SPECIAL DUTY') : dutyTypeSelect;
+            const userId = document.getElementById('nd-user-select').value;
+            const shift = document.getElementById('nd-shift-select').value;
+
+            if (!userId) {
+                showToast('නිලධාරියෙකු තෝරන්න.', 'warning');
+                return;
+            }
+
+            state.report.nightDuty.push({
+                id: 'nd_' + Date.now(),
+                dutyType,
+                userId,
+                shift
+            });
+            render();
+            showToast(`${dutyType} (${shift}) එක් කරන ලදී.`, 'success');
+        }
+
+        function removeNightDutyAssignment(id) {
+            state.report.nightDuty = state.report.nightDuty.filter(d => d.id !== id);
+            render();
+        }
+
+        function saveDailyReportAndShare() {
+            const briefingEl = document.getElementById('edit-briefing-textarea');
+            if (briefingEl) {
+                state.report.briefing = briefingEl.value.trim();
+            }
+
+            const user = state.session.user;
+            state.report.date = new Date().toISOString().split('T')[0];
+            state.report.lastUpdatedBy = `${user.rank} ${user.name} (${user.serviceNo})`;
+            state.report.lastUpdatedAt = getCurrentTimeStr();
+            state.report.yesterdayBackup = {
+                keyDutyHeads: { ...state.report.keyDutyHeads },
+                parade: { ...state.report.parade },
+                paradeNominalDetails: [...state.report.paradeNominalDetails],
+                briefing: state.report.briefing
+            };
+
+            logAudit(
+                user,
+                state.session.mode === 'admin' ? 'Super Admin Portal' : 'Duty Handover QR',
+                'දෛනික පෙළපාලි වාර්තාව, Key Duties, Shift Duty සහ Night Briefing යාවත්කාලීන කරන ලදී.'
+            );
+            saveState();
+            showToast('දෛනික වාර්තාව සුරැකිණි!', 'success');
+            openWhatsAppPreviewModal();
+            render();
+        }
+
+        function buildWhatsAppMessage() {
+            const r = state.report;
+            const p = r.parade;
+            const heads = r.keyDutyHeads || {};
+            const activeIds = new Set(getActivePersonnel().map(u => u.id));
+
+            const formatHead = (uid) => {
+                const u = getUserById(uid);
+                return (u && u.status === 'Active') ? `${u.rank} ${u.name} (${u.serviceNo})` : 'Not Assigned';
+            };
+
+            const dutyLines = r.nightDuty
+                .filter(d => activeIds.has(d.userId))
+                .map((d, i) => {
+                    const u = getUserById(d.userId);
+                    const dName = d.dutyType || d.post || 'DUTY';
+                    return `${i + 1}. *${dName}*\n    👤 ${u.rank} ${u.name} (${u.serviceNo} - ${u.branch})\n    🕒 Shift: ${d.shift}`;
+                }).join('\n');
+
+            const nominalBreakdownLines = (r.paradeNominalDetails || [])
+                .filter(item => activeIds.has(item.userId))
+                .map(item => {
+                    const u = getUserById(item.userId);
+                    return `• *${item.category}:* ${u.rank} ${u.name} (${u.serviceNo})${item.note ? ` - ${item.note}` : ''}`;
+                }).join('\n');
+
+            const alertBlock = (r.specialAlert && r.specialAlert.active)
+                ? `\n🚨 *විශේෂ හදිසි දැනුම්දීම (${r.specialAlert.title})*\n${r.specialAlert.message}\n━━━━━━━━━━━━━━━━━━━━`
+                : '';
+
+            return `*🛡️ ROMS — DAILY PARADE & DUTY BRIEFING*
+📅 දිනය: ${r.date}
+🏢 ඒකකය: ${r.unitName}
+━━━━━━━━━━━━━━━━━━━━
+*⭐ ප්‍රධාන රාජකාරි නිලධාරීන් (Key Duties)*
+• *DUTY SNCO:* ${formatHead(heads.dutySncoId)}
+• *CREW CHIEF:* ${formatHead(heads.crewChiefId)}
+• *CD DUTY:* ${formatHead(heads.cdDutyId)}
+━━━━━━━━━━━━━━━━━━━━${alertBlock}
+*📊 1. පෙළපාලි වාර්තාව (Parade State)*
+• මුළු පිරිස (Total): *${p.total}*
+• පැමිණි (Present): *${p.present}*
+• නිවාඩු (Leave): *${p.leave}*
+• වෙනත් රාජකාරි (Duty): *${p.duty}*
+• අසනීප (Sick): *${p.sick}*
+• වෛද්‍ය අසනීප (Medical Sick): *${p.medicalSick || 0}*
+• පාඨමාලා (Course): *${p.course}*
+• Attach Out: *${p.attachOut || 0}*
+• Attach In: *${p.attachIn || 0}*
+${nominalBreakdownLines ? `\n*📋 නාමික විස්තර (Medical Sick / Attach / Leave):*\n${nominalBreakdownLines}\n` : ''}
+*🌙 2. රාජකාරි ලැයිස්තුව (Duty Roster & Shifts)*
+${dutyLines || '• ඇතුළත් කර නොමැත.'}
+
+*📢 3. Night Briefing & විශේෂ උපදෙස්*
+${r.briefing}
+━━━━━━━━━━━━━━━━━━━━
+✍️ සකස් කළේ: ${r.lastUpdatedBy} (${r.lastUpdatedAt})
+🛠️ System: ROMS • Created by ${ROMS_IDENTITY.createdBy}
+📲 _පණිවිඩය බැලූ බව තහවුරු කිරීමට (Seen) General QR එක Scan කරන්න._`;
+        }
+
+        function openWhatsAppPreviewModal() {
+            const msg = buildWhatsAppMessage();
+            const encoded = encodeURIComponent(msg);
+            const modal = document.getElementById('modal-container');
+
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[430px] rounded-2xl shadow-2xl overflow-hidden fade-in flex flex-col max-h-[90vh]">
+                    <div class="bg-emerald-700 text-white px-5 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="share-2" class="w-5 h-5"></i>
+                            <h3 class="font-bold text-sm">WhatsApp පණිවිඩය යැවීම</h3>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-emerald-800 text-emerald-100">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 overflow-y-auto space-y-3">
+                        <div class="bg-[#e5ddd5] p-3 rounded-xl border border-slate-200">
+                            <div class="bg-[#dcf8c6] text-slate-800 p-3 rounded-xl shadow-sm text-xs whitespace-pre-wrap leading-relaxed font-sans">${escapeHTML(msg)}</div>
+                        </div>
+                        <a href="https://wa.me/?text=${encoded}" target="_blank" rel="noopener noreferrer"
+                           class="w-full py-3.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 text-xs btn-press">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            <span>WhatsApp Group / Contact වෙත යවන්න</span>
+                        </a>
+                        <button onclick="copyWhatsAppText()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl flex items-center justify-center gap-2 text-xs btn-press">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>පණිවිඩය Copy කරගන්න (Copy Text)</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function copyWhatsAppText() {
+            const temp = document.createElement('textarea');
+            temp.value = buildWhatsAppMessage();
+            document.body.appendChild(temp);
+            temp.select();
+            try {
+                document.execCommand('copy');
+                showToast('WhatsApp පණිවිඩය Copy විය!', 'success');
+            } catch (e) {
+                showToast('Copy කිරීමට නොහැකි විය.', 'error');
+            }
+            document.body.removeChild(temp);
+        }
+
+        // ==========================================
+        // 8B. DAILY OPS BRIEFING
+        // ==========================================
+        function buildOpsBriefingWhatsAppText() {
+            const b = state.report.dailyOpsBriefing;
+            const alphaLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+            const svcBlock = (!b.svcItems || b.svcItems.length === 0)
+                ? '02)  SVC - Nil'
+                : `02)  SVC -\n${b.svcItems.map((item, idx) => `${alphaLetters[idx] || (idx + 1)}. ${item}`).join('\n')}`;
+
+            const trgBlock = `3) TRG- ${b.trg || 'Nil'}`;
+            const receeBlock = (!b.recee || b.recee.trim().toLowerCase() === 'nil')
+                ? '4) RECEE- Nil'
+                : `4) RECEE-\n#${b.recee.replace(/^#/, '')}`;
+            const vvipBlock = (!b.vvip || b.vvip.trim().toLowerCase() === 'nil')
+                ? '5) VVIP Air Movement- Nil'
+                : `5) VVIP Air Movement-\n#${b.vvip.replace(/^#/, '')}`;
+
+            const adPlanLines = (b.adPlanItems && b.adPlanItems.length > 0)
+                ? b.adPlanItems.map(line => ` ${line}`).join('\n')
+                : ' Nil';
+            const adPlanBlock = `6) AD plan- ${b.adPlanHeader || ''}\n${adPlanLines}`;
+
+            const notamLines = (b.notamItems && b.notamItems.length > 0)
+                ? b.notamItems.map(item => `#${item.replace(/^#/, '')}`).join('\n\n')
+                : 'Nil';
+            const notamBlock = `7) NOTAM\n${notamLines}`;
+
+            const otherBlock = (b.otherItems && b.otherItems.length > 0)
+                ? `\n\n8) Other\n${b.otherItems.map(item => `#${item.replace(/^#/, '')}`).join('\n\n')}`
+                : '';
+
+            return `Good evening sir,
+
+Night briefing  ${b.dateLabel}
+
+SD - ${b.sd}
+ASO - ${b.aso}
+
+ORP - ${b.orp}
+
+01) Night Watch hrs - ${b.nightWatchUnit}                   ${b.nightWatchTime}
+
+S/By- *${b.nightWatchStandby}*
+
+
+${svcBlock}
+
+
+${trgBlock}
+
+
+${receeBlock}
+
+
+${vvipBlock}
+
+
+${adPlanBlock}
+
+${notamBlock}${otherBlock}
+
+
+Good night sir`;
+        }
+
+        function openOpsBriefingWhatsAppModal() {
+            const msg = buildOpsBriefingWhatsAppText();
+            const encoded = encodeURIComponent(msg);
+            const modal = document.getElementById('modal-container');
+
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[440px] rounded-2xl shadow-2xl overflow-hidden fade-in flex flex-col max-h-[92vh]">
+                    <div class="bg-emerald-800 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-emerald-300"></i>
+                            <h3 class="font-bold text-sm">Daily Ops Briefing (WhatsApp Ready)</h3>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-emerald-900 text-emerald-100">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 overflow-y-auto space-y-3">
+                        <div class="bg-[#e5ddd5] p-3 rounded-xl border border-slate-300 max-h-[55vh] overflow-y-auto">
+                            <div class="bg-[#dcf8c6] text-slate-900 p-3.5 rounded-xl shadow-sm text-xs whitespace-pre-wrap leading-relaxed font-mono">${escapeHTML(msg)}</div>
+                        </div>
+                        <a href="https://wa.me/?text=${encoded}" target="_blank" rel="noopener noreferrer"
+                           class="w-full py-3.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 text-xs btn-press">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            <span>WhatsApp වෙත යවන්න (Send Briefing)</span>
+                        </a>
+                        <button onclick="copyOpsBriefingText()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl flex items-center justify-center gap-2 text-xs btn-press">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>Briefing එක Copy කරගන්න (Copy Text)</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function copyOpsBriefingText() {
+            const temp = document.createElement('textarea');
+            temp.value = buildOpsBriefingWhatsAppText();
+            document.body.appendChild(temp);
+            temp.select();
+            try {
+                document.execCommand('copy');
+                showToast('Daily Ops Briefing Copy විය!', 'success');
+            } catch (e) {
+                showToast('Copy කිරීමට නොහැකි විය.', 'error');
+            }
+            document.body.removeChild(temp);
+        }
+
+        function openEditOpsBriefingModal() {
+            if (!canEditOpsBriefing(state.session.user)) {
+                showToast('මෙම Briefing එක Edit කිරීමට අවසර ඇත්තේ ADSO Branch නිලධාරීන්ට පමණි!', 'error');
+                return;
+            }
+            const b = state.report.dailyOpsBriefing;
+            const todayOrdinal = getFormattedOrdinalDate();
+            const adrsUnits = ['01 ADRS', '02 ADRS', '03 ADRS', '04 ADRS', '05 ADRS', '06 ADRS', '07 ADRS', 'JY-11 Radar'];
+            const timeSlots = ['0010-0600hrs', '0030-0430hrs', '0000-0600hrs', '2200-0600hrs'];
+
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[460px] rounded-2xl shadow-2xl overflow-hidden fade-in max-h-[94vh] flex flex-col">
+                    <div class="bg-slate-900 text-white px-4 py-3.5 flex items-center justify-between shrink-0">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="radar" class="w-5 h-5 text-amber-400"></i>
+                            <div>
+                                <h3 class="font-bold text-xs">Daily Ops Briefing යාවත්කාලීන කිරීම</h3>
+                                <p class="text-[10px] text-amber-300">ADSO Branch Access • Editor: ${escapeHTML(state.session.user.rank)} ${escapeHTML(state.session.user.name)}</p>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-4 overflow-y-auto space-y-4 text-xs">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <label class="font-bold text-slate-700">📅 Briefing Date:</label>
+                                <button type="button" onclick="document.getElementById('ob-date').value = '${todayOrdinal}'" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                                    අද දිනය දමන්න (${todayOrdinal})
+                                </button>
+                            </div>
+                            <input id="ob-date" type="text" value="${escapeHTML(b.dateLabel)}" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-semibold">
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">SD:</label>
+                                    <input id="ob-sd" type="text" value="${escapeHTML(b.sd)}" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">ASO:</label>
+                                    <input id="ob-aso" type="text" value="${escapeHTML(b.aso)}" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">ORP:</label>
+                                <input id="ob-orp" type="text" value="${escapeHTML(b.orp)}" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200 space-y-2">
+                            <div class="font-bold text-blue-950">01) Night Watch hrs & Standby</div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Active Unit</label>
+                                    <select id="ob-nw-unit" class="w-full px-2 py-2 rounded-lg border border-slate-300 bg-white font-bold">
+                                        ${adrsUnits.map(u => `<option value="${u}" ${b.nightWatchUnit === u ? 'selected' : ''}>${u}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Watch Hrs</label>
+                                    <input id="ob-nw-time" type="text" list="nw-time-presets" value="${escapeHTML(b.nightWatchTime)}" class="w-full px-2 py-2 rounded-lg border border-slate-300 bg-white font-semibold">
+                                    <datalist id="nw-time-presets">
+                                        ${timeSlots.map(t => `<option value="${t}">`).join('')}
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">S/By Unit</label>
+                                    <select id="ob-nw-sby" class="w-full px-2 py-2 rounded-lg border border-slate-300 bg-white font-bold">
+                                        ${adrsUnits.map(u => `<option value="${u}" ${b.nightWatchStandby === u ? 'selected' : ''}>${u}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-900">02) SVC (Serviceability)</span>
+                                <button type="button" onclick="clearOpsListContainer('ob-svc-list')" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Set Nil</button>
+                            </div>
+                            <div id="ob-svc-list" class="space-y-1.5">
+                                ${(b.svcItems || []).map(item => `
+                                    <div class="flex gap-1.5 items-center ob-svc-row">
+                                        <input type="text" value="${escapeHTML(item)}" class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-[11px]">
+                                        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button type="button" onclick="appendOpsInputRow('ob-svc-list', 'ob-svc-row', 'උදා: No 01 ADRS MMI 1st Day 0800 - 1800hrs.')" class="w-full py-1.5 bg-white border border-dashed border-slate-400 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-100">
+                                + SVC කරුණක් එක් කරන්න
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="font-bold text-slate-800">3) TRG:</label>
+                                    <button type="button" onclick="document.getElementById('ob-trg').value='Nil'" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Nil</button>
+                                </div>
+                                <input id="ob-trg" type="text" value="${escapeHTML(b.trg)}" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white">
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="font-bold text-slate-800">4) RECEE:</label>
+                                    <button type="button" onclick="document.getElementById('ob-recee').value='Nil'" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Nil</button>
+                                </div>
+                                <input id="ob-recee" type="text" value="${escapeHTML(b.recee)}" placeholder="Nil හෝ RMA B-206 ETD-1600hrs..." class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white">
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="font-bold text-slate-800">5) VVIP Air Movement:</label>
+                                    <button type="button" onclick="document.getElementById('ob-vvip').value='Nil'" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Nil</button>
+                                </div>
+                                <input id="ob-vvip" type="text" value="${escapeHTML(b.vvip)}" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white">
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-200 space-y-2">
+                            <div class="font-bold text-indigo-950">6) AD Plan</div>
+                            <input id="ob-ad-header" type="text" value="${escapeHTML(b.adPlanHeader)}" placeholder="උදා: For Parliament session / Normal AD" class="w-full px-2.5 py-1.5 rounded-lg border border-indigo-300 bg-white font-semibold">
+                            <div id="ob-ad-list" class="space-y-1.5">
+                                ${(b.adPlanItems || []).map(item => `
+                                    <div class="flex gap-1.5 items-center ob-ad-row">
+                                        <input type="text" value="${escapeHTML(item)}" class="flex-1 px-2.5 py-1.5 rounded-lg border border-indigo-300 bg-white text-[11px]">
+                                        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button type="button" onclick="appendOpsInputRow('ob-ad-list', 'ob-ad-row', 'උදා: 0930-1430hrs  JY Radar  S/By-07')" class="w-full py-1.5 bg-white border border-dashed border-indigo-400 rounded-lg text-[11px] font-bold text-indigo-800 hover:bg-indigo-50">
+                                + AD Plan කාල සීමාවක් එක් කරන්න
+                            </button>
+                        </div>
+
+                        <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-300 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-amber-950">7) NOTAM (පවතින NOTAM ඉදිරියට ගෙන ඇත)</span>
+                            </div>
+                            <div id="ob-notam-list" class="space-y-1.5">
+                                ${(b.notamItems || []).map(item => `
+                                    <div class="flex gap-1.5 items-start ob-notam-row">
+                                        <textarea rows="2" class="flex-1 px-2.5 py-1.5 rounded-lg border border-amber-300 bg-white text-[11px] leading-snug">${escapeHTML(item)}</textarea>
+                                        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg mt-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button type="button" onclick="appendOpsTextareaRow('ob-notam-list', 'ob-notam-row', 'නව NOTAM විස්තරය (Sky diving / Paragliding / DNG Area)...')" class="w-full py-1.5 bg-white border border-dashed border-amber-500 rounded-lg text-[11px] font-bold text-amber-900 hover:bg-amber-100">
+                                + නව NOTAM එකක් එක් කරන්න
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-900">8) Other (Paramotor / Balloons / Special)</span>
+                                <button type="button" onclick="clearOpsListContainer('ob-other-list')" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Clear</button>
+                            </div>
+                            <div id="ob-other-list" class="space-y-1.5">
+                                ${(b.otherItems || []).map(item => `
+                                    <div class="flex gap-1.5 items-center ob-other-row">
+                                        <input type="text" value="${escapeHTML(item)}" class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-[11px]">
+                                        <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button type="button" onclick="appendOpsInputRow('ob-other-list', 'ob-other-row', 'උදා: Sky Club Paramotor at Bentota 0830-1830hrs')" class="w-full py-1.5 bg-white border border-dashed border-slate-400 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-100">
+                                + Other කරුණක් එක් කරන්න
+                            </button>
+                        </div>
+
+                        <button type="button" onclick="saveDailyOpsBriefing()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 btn-press">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                            <span>සුරකින්න & WhatsApp Briefing සකසන්න</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function clearOpsListContainer(containerId) {
+            const el = document.getElementById(containerId);
+            if (el) el.innerHTML = '';
+        }
+
+        function appendOpsInputRow(containerId, rowClass, placeholderText) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const div = document.createElement('div');
+            div.className = `flex gap-1.5 items-center ${rowClass}`;
+            div.innerHTML = `
+                <input type="text" placeholder="${escapeHTML(placeholderText)}" class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-[11px]">
+                <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function appendOpsTextareaRow(containerId, rowClass, placeholderText) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const div = document.createElement('div');
+            div.className = `flex gap-1.5 items-start ${rowClass}`;
+            div.innerHTML = `
+                <textarea rows="2" placeholder="${escapeHTML(placeholderText)}" class="flex-1 px-2.5 py-1.5 rounded-lg border border-amber-300 bg-white text-[11px] leading-snug"></textarea>
+                <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg mt-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function saveDailyOpsBriefing() {
+            const user = state.session.user;
+            if (!canEditOpsBriefing(user)) {
+                showToast('අවසර නැත! ADSO Branch පමණි.', 'error');
+                return;
+            }
+
+            const collectInputs = (selector) => Array.from(document.querySelectorAll(selector))
+                .map(el => el.value.trim())
+                .filter(Boolean);
+
+            const stamp = getCurrentDateTimeStamp();
+            const editorIdentity = `${user.rank} ${user.name} (${user.serviceNo} - ${user.branch})`;
+
+            state.report.dailyOpsBriefing = {
+                dateLabel: document.getElementById('ob-date').value.trim() || getFormattedOrdinalDate(),
+                sd: document.getElementById('ob-sd').value.trim(),
+                aso: document.getElementById('ob-aso').value.trim(),
+                orp: document.getElementById('ob-orp').value.trim(),
+                nightWatchUnit: document.getElementById('ob-nw-unit').value,
+                nightWatchTime: document.getElementById('ob-nw-time').value.trim(),
+                nightWatchStandby: document.getElementById('ob-nw-sby').value,
+                svcItems: collectInputs('.ob-svc-row input'),
+                trg: document.getElementById('ob-trg').value.trim() || 'Nil',
+                recee: document.getElementById('ob-recee').value.trim() || 'Nil',
+                vvip: document.getElementById('ob-vvip').value.trim() || 'Nil',
+                adPlanHeader: document.getElementById('ob-ad-header').value.trim(),
+                adPlanItems: collectInputs('.ob-ad-row input'),
+                notamItems: collectInputs('.ob-notam-row textarea'),
+                otherItems: collectInputs('.ob-other-row input'),
+                updatedBy: editorIdentity,
+                updatedAt: stamp
+            };
+
+            logAudit(user, 'ADSO Ops Briefing', `Daily Ops Briefing (${state.report.dailyOpsBriefing.dateLabel}) යාවත්කාලීන කරන ලදී.`);
+            saveState();
+            closeModal();
+            showToast('Daily Ops Briefing සුරැකිණි!', 'success');
+            openOpsBriefingWhatsAppModal();
+            render();
+        }
+
+        // ==========================================
+        // 9. NOMINAL ROLL CRUD & PERMANENT DELETE (SUPER ADMIN)
+        // ==========================================
+        function openNominalFormModal(editUserId = null) {
+            const editingUser = editUserId ? getUserById(editUserId) : null;
+            const normEditBranch = editingUser ? normalizeBranchName(editingUser.branch) : 'ADSO';
+            const modal = document.getElementById('modal-container');
+
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[440px] rounded-2xl shadow-2xl overflow-hidden fade-in max-h-[92vh] flex flex-col">
+                    <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-blue-400"></i>
+                            <h3 class="font-bold text-sm">${editingUser ? 'සාමාජික විස්තර සංස්කරණය' : 'Nominal Roll සඳහා නව සාමාජිකයෙක්'}</h3>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-4 overflow-y-auto space-y-3">
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Service No *</label>
+                                <input id="nr-sno" type="text" value="${escapeHTML(editingUser ? editingUser.serviceNo : '')}" placeholder="උදා: 32540 / AW 5810" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Rank (නිලය) *</label>
+                                <select id="nr-rank" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-semibold">
+                                    ${RANK_LIST.map(rk => `<option value="${rk}" ${editingUser && normalizeRankName(editingUser.rank) === rk ? 'selected' : ''}>${rk}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Full Name (නම) *</label>
+                            <input id="nr-name" type="text" value="${escapeHTML(editingUser ? editingUser.name : '')}" placeholder="උදා: PERERA K.A.S." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 uppercase">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Branch / Trade *</label>
+                                <select id="nr-branch" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-bold text-slate-900">
+                                    ${STANDARD_BRANCHES.map(br => `<option value="${br}" ${normEditBranch === br ? 'selected' : ''}>${br}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Personal PIN (4-Digit) *</label>
+                                <input id="nr-pin" type="text" maxlength="4" value="${escapeHTML(editingUser ? editingUser.pin : '')}" placeholder="උදා: 1010" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-bold">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">WhatsApp / Phone 1</label>
+                                <input id="nr-wa" type="tel" value="${escapeHTML(editingUser ? (editingUser.whatsapp || editingUser.phone1) : '')}" placeholder="077XXXXXXX" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Phone Number 2</label>
+                                <input id="nr-p2" type="tel" value="${escapeHTML(editingUser ? editingUser.phone2 : '')}" placeholder="071XXXXXXX (Optional)" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Posting Status</label>
+                            <select id="nr-status" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-semibold">
+                                <option value="Active" ${!editingUser || editingUser.status === 'Active' ? 'selected' : ''}>✅ Active (සක්‍රීය)</option>
+                                <option value="Posted Out" ${editingUser && editingUser.status === 'Posted Out' ? 'selected' : ''}>🚫 Posted Out (මාරුවී ගිය - තාවකාලික අක්‍රීය)</option>
+                            </select>
+                        </div>
+
+                        <button onclick="saveNominalMember('${editingUser ? editingUser.id : ''}')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md btn-press">
+                            ${editingUser ? 'වෙනස්කම් සුරකින්න (Update Member)' : 'Nominal Roll වෙත එක් කරන්න'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function saveNominalMember(editId) {
+            const serviceNo = document.getElementById('nr-sno').value.trim().toUpperCase();
+            const rank = normalizeRankName(document.getElementById('nr-rank').value);
+            const name = document.getElementById('nr-name').value.trim().toUpperCase();
+            const branch = normalizeBranchName(document.getElementById('nr-branch').value);
+            const pin = document.getElementById('nr-pin').value.trim();
+            const whatsapp = document.getElementById('nr-wa').value.trim();
+            const phone2 = document.getElementById('nr-p2').value.trim();
+            const status = document.getElementById('nr-status').value;
+
+            if (!serviceNo || !name || pin.length !== 4 || isNaN(pin)) {
+                showToast('Service No, නම සහ ඉලක්කම් 4ක PIN අංකය අනිවාර්ය වේ.', 'error');
+                return;
+            }
+
+            const duplicatePin = state.nominalRoll.find(u => u.pin === pin && u.id !== editId);
+            if (duplicatePin) {
+                showToast(`PIN ${pin} දැනටමත් ${duplicatePin.rank} ${duplicatePin.name} හට භාවිතා වේ.`, 'error');
+                return;
+            }
+
+            if (editId) {
+                const idx = state.nominalRoll.findIndex(u => u.id === editId);
+                if (idx >= 0) {
+                    state.nominalRoll[idx] = {
+                        ...state.nominalRoll[idx],
+                        serviceNo, rank, name, branch, pin, phone1: whatsapp, phone2, whatsapp, status
+                    };
+                    logAudit(state.session.user, 'Nominal Roll', `${rank} ${name} (${serviceNo}) ගේ විස්තර යාවත්කාලීන කළේය (Branch: ${branch}, Status: ${status}).`);
+                    showToast('සාමාජික විස්තර යාවත්කාලීන විය!', 'success');
+                }
+            } else {
+                state.nominalRoll.push({
+                    id: 'u_' + Date.now(),
+                    serviceNo, rank, name, branch, pin, phone1: whatsapp, phone2, whatsapp,
+                    role: rank === 'SUPER ADMIN' ? 'admin' : 'officer',
+                    status
+                });
+                logAudit(state.session.user, 'Nominal Roll', `නව සාමාජිකයෙකු එක් කළේය: ${rank} ${name} (${serviceNo}) - ${branch}.`);
+                showToast('නව සාමාජිකයා සම්මත Branch & Number පිළිවෙළට එක් විය!', 'success');
+            }
+
+            const activeCount = getActivePersonnel().length;
+            state.report.parade.total = activeCount;
+            if (state.report.parade.present > activeCount) {
+                state.report.parade.present = activeCount;
+            }
+
+            saveState();
+            closeModal();
+            render();
+        }
+
+        function toggleMemberStatus(userId) {
+            const member = getUserById(userId);
+            if (!member || member.role === 'admin') return;
+            member.status = member.status === 'Active' ? 'Posted Out' : 'Active';
+            logAudit(state.session.user, 'Nominal Roll', `${member.rank} ${member.name} (${member.serviceNo}) ගේ තත්ත්වය "${member.status}" ලෙස වෙනස් කළේය.`);
+            saveState();
+            showToast(`${member.rank} ${member.name}: ${member.status}`, member.status === 'Active' ? 'success' : 'warning');
+            render();
+        }
+
+        function confirmPermanentDeleteMember(userId) {
+            const member = getUserById(userId);
+            if (!member || member.role === 'admin') return;
+
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[390px] rounded-2xl shadow-2xl overflow-hidden fade-in p-5 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                        <i data-lucide="trash-2" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-slate-900">සම්පූර්ණයෙන්ම ඉවත් කරන්නද?</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        <strong>${escapeHTML(member.serviceNo)} - ${escapeHTML(member.rank)} ${escapeHTML(member.name)}</strong> (${escapeHTML(member.branch)}) පද්ධතියෙන් සම්පූර්ණයෙන්ම මකා දැමීමට (Permanent Delete) අවශ්‍ය බව තහවුරු කරන්න.
+                    </p>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="closeModal()" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl btn-press">
+                            අවලංගු කරන්න
+                        </button>
+                        <button onclick="executePermanentDeleteMember('${member.id}')" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow btn-press">
+                            ඔව්, මකා දමන්න
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function executePermanentDeleteMember(userId) {
+            const member = getUserById(userId);
+            if (!member || member.role === 'admin') return;
+
+            state.nominalRoll = state.nominalRoll.filter(u => u.id !== userId);
+            state.seenLogs = state.seenLogs.filter(s => s.userId !== userId);
+            state.report.nightDuty = state.report.nightDuty.filter(d => d.userId !== userId);
+            state.report.paradeNominalDetails = (state.report.paradeNominalDetails || []).filter(item => item.userId !== userId);
+
+            if (state.report.keyDutyHeads.dutySncoId === userId) state.report.keyDutyHeads.dutySncoId = '';
+            if (state.report.keyDutyHeads.crewChiefId === userId) state.report.keyDutyHeads.crewChiefId = '';
+            if (state.report.keyDutyHeads.cdDutyId === userId) state.report.keyDutyHeads.cdDutyId = '';
+
+            const activeCount = getActivePersonnel().length;
+            state.report.parade.total = activeCount;
+            if (state.report.parade.present > activeCount) {
+                state.report.parade.present = activeCount;
+            }
+
+            const client = getSupabaseClient();
+            if (client) {
+                await client.from('nominal_roll').delete().eq('id', userId);
+            }
+
+            logAudit(state.session.user, 'Nominal Roll Delete', `${member.serviceNo} - ${member.rank} ${member.name} (${member.branch}) පද්ධතියෙන් සම්පූර්ණයෙන්ම මකා දමන ලදී.`);
+            saveState();
+            closeModal();
+            showToast(`${member.rank} ${member.name} සම්පූර්ණයෙන්ම ඉවත් කරන ලදී!`, 'warning');
+            render();
+        }
+
+        function confirmRotateQRCodes() {
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[380px] rounded-2xl shadow-2xl overflow-hidden fade-in p-5 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-slate-900">QR කේත අලුත් කරන්නද?</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        නව QR Token එකක් නිකුත් කළ විට පැරණි QR කේත අවලංගු වේ. ඉදිරියට යාමට තහවුරු කරන්න.
+                    </p>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="closeModal()" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl btn-press">අවලංගු කරන්න</button>
+                        <button onclick="rotateQRCodes(); closeModal();" class="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow btn-press">QR අලුත් කරන්න</button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function rotateQRCodes() {
+            state.report.qrTokenVersion += 1;
+            logAudit(state.session.user, 'Super Admin Security', `නව QR කේත නිකුත් කළේය (Token v${state.report.qrTokenVersion}.0).`);
+            saveState();
+            showToast(`නව QR කේත (v${state.report.qrTokenVersion}.0) සක්‍රිය කළේය!`, 'success');
+            render();
+        }
+
+        function confirmResetAllDemoData() {
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[380px] rounded-2xl shadow-2xl overflow-hidden fade-in p-5 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                        <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-slate-900">සියලු දත්ත Reset කරන්නද?</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        ඔබ ඇතුළත් කළ සියලුම වෙනස්කම් ඉවත් වී මුල් Default තත්ත්වයට පත් වේ.
+                    </p>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="closeModal()" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl btn-press">නැත</button>
+                        <button onclick="resetAllDemoData()" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow btn-press">ඔව්, Reset කරන්න</button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function resetAllDemoData() {
+            localStorage.removeItem('ops3_nominal');
+            localStorage.removeItem('ops3_report');
+            localStorage.removeItem('ops3_seen');
+            localStorage.removeItem('ops3_notices');
+            localStorage.removeItem('ops3_audit');
+            location.reload();
+        }
+
+        // ==========================================
+        // 10. VIEW RENDERERS (WITH ROMS IDENTITY & 41016 STAMP)
+        // ==========================================
+        function renderIdentityFooter() {
+            const isError = state.cloudStatus.includes('Error');
+            return `
+                <footer class="mt-auto mb-16 px-4 py-3 text-center text-[10px] text-slate-500 border-t border-slate-200/80 bg-slate-100/80">
+                    <span class="font-extrabold text-slate-700">ROMS</span> • Radar Operation Management System •
+                    <span class="font-bold text-blue-700">Created by ${escapeHTML(ROMS_IDENTITY.createdBy)}</span> •
+                    <button onclick="pullInitialCloudState(false)" class="font-bold underline ${isError ? 'text-rose-600' : 'text-emerald-700'}">
+                        ${escapeHTML(state.cloudStatus)}
+                    </button>
+                    ${state.cloudErrorDetail ? `<div class="text-rose-600 mt-0.5 font-semibold">${escapeHTML(state.cloudErrorDetail)}</div>` : ''}
+                </footer>
+            `;
+        }
+
+        function renderLoginScreen() {
+            const activeUsers = getActivePersonnel();
+            const modeConfig = {
+                general: {
+                    title: 'General QR පිවිසුම',
+                    subtitle: 'ඔබගේ නම තෝරා හෝ කෙලින්ම PIN අංකය ගසන්න',
+                    badge: 'GENERAL QR',
+                    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'
+                },
+                duty: {
+                    title: 'Duty Handover QR පිවිසුම',
+                    subtitle: 'අද Duty භාර නිලධාරියාගේ Personal PIN අංකය ඇතුළත් කරන්න',
+                    badge: 'DUTY EDITOR QR',
+                    badgeCls: 'bg-amber-100 text-amber-900 border-amber-300'
+                },
+                admin: {
+                    title: 'Super Admin පාලක පිවිසුම',
+                    subtitle: 'Nominal Roll, Audit Logs සහ QR පාලනය සඳහා Super Admin PIN',
+                    badge: 'SUPER ADMIN',
+                    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'
+                }
+            }[state.selectedQrMode];
+
+            return `
+                <header class="bg-slate-900 text-white px-5 pt-5 pb-6 rounded-b-3xl shadow-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-inner">
+                                <i data-lucide="radar" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <h1 class="font-extrabold text-lg tracking-tight leading-none">ROMS</h1>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">BY ${escapeHTML(ROMS_IDENTITY.createdBy)}</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-1">Radar Operation Management System</p>
+                            </div>
+                        </div>
+                        <button onclick="openQRModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 text-blue-300 btn-press">
+                            <i data-lucide="qr-code" class="w-4 h-4"></i>
+                            <span>QR කේත</span>
+                        </button>
+                    </div>
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-2.5 flex items-center justify-between text-xs">
+                        <span class="text-slate-300">📅 ${escapeHTML(state.report.date)}</span>
+                        <span class="text-emerald-400 font-semibold">සක්‍රීය පිරිස (Active): ${activeUsers.length}</span>
+                    </div>
+                </header>
+
+                <main class="flex-1 px-4 py-5 flex flex-col justify-between">
+                    ${state.loginStep === 'qr_select' ? `
+                        <div class="space-y-3.5 fade-in">
+                            <div class="text-center">
+                                <h2 class="text-base font-bold text-slate-800">පිවිසෙන ආකාරය තෝරන්න</h2>
+                                <p class="text-xs text-slate-500">Scan කළ QR කේතය අනුව පහත විකල්පය තෝරන්න</p>
+                            </div>
+
+                            <button onclick="selectQRMode('general')" class="w-full text-left bg-white hover:bg-blue-50/40 border-2 border-slate-200 hover:border-blue-500 rounded-2xl p-3.5 shadow-sm transition-all flex items-center gap-3.5 btn-press">
+                                <div class="w-11 h-11 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                                    <i data-lucide="qr-code" class="w-6 h-6"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-sm text-slate-900">General QR පිවිසුම</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">නිලධාරීන්</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">දෛනික වාර්තා, Seen Log සහ විශේෂ පණිවිඩ බැලීමට.</p>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                            </button>
+
+                            <button onclick="selectQRMode('duty')" class="w-full text-left bg-white hover:bg-amber-50/50 border-2 border-amber-300 hover:border-amber-500 rounded-2xl p-3.5 shadow-sm transition-all flex items-center gap-3.5 btn-press">
+                                <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                                    <i data-lucide="clipboard-edit" class="w-6 h-6"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-sm text-slate-900">Duty Handover QR</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900">අද Duty කෙනා</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">පෙළපාලි වාර්තා, Key Duties, Shift Duty සහ Briefing Update කිරීමට.</p>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-amber-600"></i>
+                            </button>
+
+                            <button onclick="selectQRMode('admin')" class="w-full text-left bg-slate-200/80 hover:bg-slate-200 border border-slate-300 rounded-2xl p-3 transition-all flex items-center gap-3 btn-press">
+                                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <span class="font-bold text-xs text-slate-900 block">Super Admin පාලක පිවිසුම</span>
+                                    <span class="text-[11px] text-slate-600">Nominal Roll, Audit Logs සහ QR පාලනය</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
+                            </button>
+                        </div>
+
+                        <!-- 1-Tap Demo Login -->
+                        <div class="mt-5 bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">⚡ ඉක්මන් පරීක්ෂාව (Active Nominal Roll)</span>
+                                <button onclick="confirmResetAllDemoData()" class="text-[11px] text-rose-600 hover:underline font-bold">Reset Default</button>
+                            </div>
+                            <div class="grid grid-cols-1 gap-1.5 max-h-44 overflow-y-auto pr-0.5">
+                                ${activeUsers.map(u => {
+                                    const isAdm = u.role === 'admin';
+                                    const isDutyDefault = u.serviceNo === '41016';
+                                    const cardCls = isAdm
+                                        ? 'bg-slate-900 text-white hover:bg-slate-800 border-slate-800'
+                                        : isDutyDefault
+                                            ? 'bg-amber-50 border-amber-300 text-slate-800 hover:bg-amber-100'
+                                            : 'bg-blue-50/70 border-blue-200 text-slate-800 hover:bg-blue-100';
+                                    const badgeText = isAdm ? 'Super Admin (PIN: 9999)' : isDutyDefault ? `Duty QR (PIN: ${u.pin})` : `General QR (PIN: ${u.pin})`;
+                                    const targetMode = isAdm ? 'admin' : isDutyDefault ? 'duty' : 'general';
+                                    return `
+                                        <button onclick="quickDemoLogin('${u.pin}', '${targetMode}')" class="px-3 py-2 text-left rounded-xl border ${cardCls} transition flex items-center justify-between btn-press">
+                                            <div class="min-w-0">
+                                                <div class="text-[11px] font-bold truncate">${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)}</div>
+                                                <div class="text-[10px] opacity-75">${escapeHTML(u.branch)}</div>
+                                            </div>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-black/10 shrink-0">${escapeHTML(badgeText)}</span>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="fade-in flex flex-col items-center">
+                            <div class="w-full flex items-center justify-between mb-2">
+                                <button onclick="backToQRSelect()" class="text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1 py-1.5 px-2.5 rounded-lg bg-slate-200">
+                                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                                    <span>ආපසු</span>
+                                </button>
+                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${modeConfig.badgeCls}">${modeConfig.badge}</span>
+                            </div>
+
+                            <div class="text-center my-1">
+                                <h2 class="text-base font-bold text-slate-900">${modeConfig.title}</h2>
+                                <p class="text-xs text-slate-500 mt-0.5 max-w-[290px] mx-auto">${modeConfig.subtitle}</p>
+                            </div>
+
+                            <div class="w-full max-w-[290px] mt-2">
+                                <select onchange="state.selectedLoginUserId = this.value; state.pinBuffer = ''; render();" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-semibold text-slate-800">
+                                    <option value="">-- නම තෝරන්න (හෝ කෙලින්ම PIN ගසන්න) --</option>
+                                    ${activeUsers
+                                        .filter(u => state.selectedQrMode === 'admin' ? u.role === 'admin' : true)
+                                        .map(u => `<option value="${u.id}" ${state.selectedLoginUserId === u.id ? 'selected' : ''}>${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.branch)})</option>`)
+                                        .join('')}
+                                </select>
+                            </div>
+
+                            <div class="flex items-center justify-center gap-3.5 my-3.5">
+                                ${[0, 1, 2, 3].map(idx => `
+                                    <div class="w-11 h-12 rounded-2xl border-2 flex items-center justify-center text-xl font-bold ${state.pinBuffer.length > idx ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-300 bg-white text-slate-300'}">
+                                        ${state.pinBuffer.length > idx ? '●' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2 w-full max-w-[290px]">
+                                ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `
+                                    <button onclick="handlePinDigit('${n}')" class="py-2.5 rounded-2xl bg-white hover:bg-slate-100 active:bg-blue-600 active:text-white border border-slate-200 shadow-sm text-lg font-bold text-slate-800 btn-press">
+                                        ${n}
+                                    </button>
+                                `).join('')}
+                                <div class="flex items-center justify-center text-[10px] text-slate-400 font-semibold text-center leading-tight">4-Digit<br>PIN</div>
+                                <button onclick="handlePinDigit('0')" class="py-2.5 rounded-2xl bg-white hover:bg-slate-100 active:bg-blue-600 active:text-white border border-slate-200 shadow-sm text-lg font-bold text-slate-800 btn-press">
+                                    0
+                                </button>
+                                <button onclick="handlePinBackspace()" class="py-2.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center btn-press">
+                                    <i data-lucide="delete" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `}
+                </main>
+
+                <footer class="px-4 py-3 text-center text-[10px] text-slate-400 bg-slate-900/95 border-t border-slate-800">
+                    <span class="font-bold text-slate-200">ROMS</span> • Radar Operation Management System •
+                    <span class="text-blue-400 font-semibold">Created by ${escapeHTML(ROMS_IDENTITY.createdBy)}</span> •
+                    <span class="text-emerald-400">${escapeHTML(state.cloudStatus)}</span>
+                </footer>
+            `;
+        }
+
+        // TAB 1: DAILY BRIEFING & PARADE
+        function renderBriefingTab() {
+            const r = state.report;
+            const p = r.parade;
+            const heads = r.keyDutyHeads || {};
+            const currentUser = state.session.user;
+            const activeIds = new Set(getActivePersonnel().map(u => u.id));
+            const mySeen = state.seenLogs.find(s => s.userId === currentUser.id);
+            const activeSeenCount = state.seenLogs.filter(s => activeIds.has(s.userId)).length;
+
+            const keyHeadCards = [
+                { label: 'DUTY SNCO', uid: heads.dutySncoId, accent: 'border-amber-400 bg-amber-950/60 text-amber-300' },
+                { label: 'CREW CHIEF', uid: heads.crewChiefId, accent: 'border-blue-400 bg-blue-950/60 text-blue-300' },
+                { label: 'CD DUTY', uid: heads.cdDutyId, accent: 'border-emerald-400 bg-emerald-950/60 text-emerald-300' }
+            ];
+
+            const activeNominalDetails = (r.paradeNominalDetails || []).filter(item => activeIds.has(item.userId));
+
+            return `
+                <div class="space-y-3.5 fade-in pb-6">
+                    <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider bg-blue-600 px-2.5 py-0.5 rounded-full">
+                                    ROMS • දෛනික මෙහෙයුම් වාර්තාව
+                                </span>
+                                <h2 class="text-sm font-bold mt-2">${escapeHTML(r.unitName)}</h2>
+                                <p class="text-[11px] text-slate-300 mt-0.5">📅 දිනය: ${escapeHTML(r.date)}</p>
+                            </div>
+                            <div class="flex flex-col gap-1.5 shrink-0">
+                                <button onclick="openWhatsAppPreviewModal()" class="px-3 py-1.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-xl shadow text-xs font-bold flex items-center gap-1.5 btn-press">
+                                    <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+                                    <span>WhatsApp</span>
+                                </button>
+                                <button onclick="openPostSpecialAlertModal()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow text-[11px] font-bold flex items-center gap-1 btn-press">
+                                    <i data-lucide="siren" class="w-3.5 h-3.5"></i>
+                                    <span>+ Alert</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-1.5 pt-1">
+                            ${keyHeadCards.map(card => {
+                                const u = getUserById(card.uid);
+                                const isValid = u && u.status === 'Active';
+                                return `
+                                    <div class="rounded-xl border ${card.accent} p-2 flex flex-col justify-between">
+                                        <span class="text-[9px] font-extrabold tracking-wider uppercase block opacity-90">${card.label}</span>
+                                        ${isValid ? `
+                                            <div class="mt-1">
+                                                <div class="text-[11px] font-extrabold text-white leading-tight truncate">${escapeHTML(u.rank)} ${escapeHTML(u.name)}</div>
+                                                <div class="flex items-center justify-between mt-1">
+                                                    <span class="text-[9px] text-slate-300">${escapeHTML(u.serviceNo)}</span>
+                                                    ${u.phone1 ? `
+                                                        <a href="tel:${escapeHTML(u.phone1)}" class="p-1 rounded bg-white/15 hover:bg-white/25 text-white" title="Call ${escapeHTML(u.phone1)}">
+                                                            <i data-lucide="phone" class="w-2.5 h-2.5"></i>
+                                                        </a>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
+                                        ` : `
+                                            <div class="text-[10px] text-slate-400 mt-1 font-semibold">Not Assigned</div>
+                                        `}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>✍️ ${escapeHTML(r.lastUpdatedBy)}</span>
+                            <span>🕒 ${escapeHTML(r.lastUpdatedAt)}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+                                <span>පෙළපාලි වාර්තාව (Parade State)</span>
+                            </h3>
+                            <span class="text-[11px] font-bold bg-slate-900 text-white px-2.5 py-0.5 rounded-lg">මුළු: ${p.total}</span>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-1.5 text-center">
+                            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-emerald-700">${p.present}</div>
+                                <div class="text-[10px] font-bold text-emerald-900">පැමිණි</div>
+                            </div>
+                            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-amber-700">${p.leave}</div>
+                                <div class="text-[10px] font-bold text-amber-900">නිවාඩු</div>
+                            </div>
+                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-blue-700">${p.duty}</div>
+                                <div class="text-[10px] font-bold text-blue-900">Duty</div>
+                            </div>
+                            <div class="bg-purple-50 border border-purple-200 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-purple-700">${p.course}</div>
+                                <div class="text-[10px] font-bold text-purple-900">Course</div>
+                            </div>
+                            <div class="bg-rose-50 border border-rose-200 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-rose-700">${p.sick}</div>
+                                <div class="text-[10px] font-bold text-rose-900">Sick</div>
+                            </div>
+                            <div class="bg-red-100/80 border border-red-300 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-red-800">${p.medicalSick || 0}</div>
+                                <div class="text-[10px] font-bold text-red-950">Med. Sick</div>
+                            </div>
+                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-orange-700">${p.attachOut || 0}</div>
+                                <div class="text-[10px] font-bold text-orange-950">Attach Out</div>
+                            </div>
+                            <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-2">
+                                <div class="text-base font-extrabold text-cyan-700">${p.attachIn || 0}</div>
+                                <div class="text-[10px] font-bold text-cyan-950">Attach In</div>
+                            </div>
+                        </div>
+
+                        ${activeNominalDetails.length > 0 ? `
+                            <div class="pt-2 border-t border-slate-100 space-y-1.5">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">නාමික විස්තර (Medical Sick / Attach Out / Attach In):</div>
+                                ${activeNominalDetails.map(item => {
+                                    const u = getUserById(item.userId);
+                                    const catStyles = {
+                                        'Medical Sick': 'bg-red-100 text-red-900 border-red-200',
+                                        'Sick': 'bg-rose-100 text-rose-900 border-rose-200',
+                                        'Attach Out': 'bg-orange-100 text-orange-900 border-orange-200',
+                                        'Attach In': 'bg-cyan-100 text-cyan-900 border-cyan-200',
+                                        'Leave': 'bg-amber-100 text-amber-900 border-amber-200',
+                                        'Course': 'bg-purple-100 text-purple-900 border-purple-200'
+                                    };
+                                    const badgeCls = catStyles[item.category] || 'bg-slate-100 text-slate-800 border-slate-200';
+                                    return `
+                                        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
+                                            <div class="min-w-0">
+                                                <span class="font-bold text-slate-900">${escapeHTML(u.rank)} ${escapeHTML(u.name)}</span>
+                                                <span class="text-[10px] text-slate-500 ml-1">(${escapeHTML(u.serviceNo)})</span>
+                                                ${item.note ? `<span class="text-[10px] text-slate-600 block">📝 ${escapeHTML(item.note)}</span>` : ''}
+                                            </div>
+                                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${badgeCls}">${escapeHTML(item.category)}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5 mb-2.5">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-amber-600"></i>
+                            <span>රාජකාරි සහ Shift ලැයිස්තුව (Duty Roster)</span>
+                        </h3>
+                        <div class="space-y-2">
+                            ${r.nightDuty.map(duty => {
+                                const u = getUserById(duty.userId);
+                                if (!u || u.status !== 'Active') return '';
+                                const dName = duty.dutyType || duty.post || 'DUTY';
+                                return `
+                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-900 text-amber-300">${escapeHTML(dName)}</span>
+                                                <span class="text-[10px] font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">${escapeHTML(duty.shift)}</span>
+                                            </div>
+                                            <div class="text-xs text-slate-900 font-bold mt-1 flex items-center gap-1.5">
+                                                <span>${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.serviceNo)})</span>
+                                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">${escapeHTML(u.branch)}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            ${u.phone1 ? `
+                                                <a href="tel:${escapeHTML(u.phone1)}" class="p-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200" title="Call ${escapeHTML(u.phone1)}">
+                                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                                </a>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5 mb-2">
+                            <i data-lucide="megaphone" class="w-4 h-4 text-indigo-600"></i>
+                            <span>Unit Night Briefing & විශේෂ උපදෙස්</span>
+                        </h3>
+                        <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3 text-xs text-slate-800 whitespace-pre-line leading-relaxed font-medium">
+                            ${escapeHTML(r.briefing)}
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border-2 border-indigo-200 shadow-sm space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-900">
+                                    🛡️ NIGHT OPERATION BRIEFING (ADSO)
+                                </span>
+                                <h3 class="font-bold text-sm text-slate-900 mt-1">Night Briefing — ${escapeHTML(r.dailyOpsBriefing.dateLabel)}</h3>
+                            </div>
+                            <div class="flex flex-col gap-1.5 shrink-0">
+                                <button onclick="openOpsBriefingWhatsAppModal()" class="px-2.5 py-1.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-xl shadow text-[11px] font-bold flex items-center gap-1 btn-press">
+                                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                                    <span>WhatsApp</span>
+                                </button>
+                                ${canEditOpsBriefing(currentUser) ? `
+                                    <button onclick="openEditOpsBriefingModal()" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow text-[11px] font-bold flex items-center gap-1 btn-press">
+                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                        <span>Edit Briefing</span>
+                                    </button>
+                                ` : `
+                                    <span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg text-center border border-slate-200">
+                                        🔒 ADSO Edit Only
+                                    </span>
+                                `}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-1.5 bg-slate-900 text-white p-2.5 rounded-xl text-[11px]">
+                            <div>
+                                <span class="text-[9px] text-slate-400 block">SD</span>
+                                <span class="font-bold truncate block">${escapeHTML(r.dailyOpsBriefing.sd)}</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 block">ASO</span>
+                                <span class="font-bold truncate block">${escapeHTML(r.dailyOpsBriefing.aso)}</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 block">ORP</span>
+                                <span class="font-bold truncate block text-amber-300">${escapeHTML(r.dailyOpsBriefing.orp)}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
+                            <div>
+                                <span class="text-[10px] font-bold text-blue-700 block">01) NIGHT WATCH HRS</span>
+                                <span class="font-extrabold text-slate-900">${escapeHTML(r.dailyOpsBriefing.nightWatchUnit)}</span>
+                                <span class="text-slate-600 font-semibold ml-1">(${escapeHTML(r.dailyOpsBriefing.nightWatchTime)})</span>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-bold">
+                                S/By: ${escapeHTML(r.dailyOpsBriefing.nightWatchStandby)}
+                            </span>
+                        </div>
+
+                        <details class="group bg-slate-50 border border-slate-200 rounded-xl overflow-hidden" open>
+                            <summary class="px-3 py-2 text-[11px] font-bold text-slate-700 cursor-pointer flex items-center justify-between bg-slate-100">
+                                <span>📋 සම්පූර්ණ Ops Briefing විස්තරය (SVC, AD Plan, NOTAM)</span>
+                                <span class="text-indigo-600 text-[10px]">පෙන්වන්න / හකුළන්න</span>
+                            </summary>
+                            <div class="p-3 text-[11px] text-slate-800 whitespace-pre-wrap font-mono leading-relaxed max-h-64 overflow-y-auto">${escapeHTML(buildOpsBriefingWhatsAppText())}</div>
+                        </details>
+
+                        <div class="bg-indigo-50/90 border border-indigo-200 rounded-xl px-3 py-2 flex items-center justify-between gap-2 text-[11px]">
+                            <div class="flex items-center gap-1.5 text-indigo-950 font-semibold min-w-0">
+                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
+                                <span class="truncate">අවසන් වරට Edit කළේ: <strong>${escapeHTML(r.dailyOpsBriefing.updatedBy)}</strong></span>
+                            </div>
+                            <span class="text-[10px] font-bold text-indigo-700 shrink-0">${escapeHTML(r.dailyOpsBriefing.updatedAt)}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border-2 ${mySeen ? 'border-emerald-400 bg-emerald-50/20' : 'border-blue-400'} shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                <i data-lucide="eye" class="w-4 h-4 text-emerald-600"></i>
+                                <span>පණිවිඩය බැලූ බව තහවුරු කිරීම (Seen)</span>
+                            </h3>
+                            <button onclick="switchTab('seen')" class="text-[11px] font-bold text-blue-600 hover:underline">
+                                බැලූ අය (${activeSeenCount}/${activeIds.size}) →
+                            </button>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            <input id="briefing-remark-input" type="text" value="${escapeHTML(mySeen ? mySeen.remark : '')}"
+                                   placeholder="විශේෂ සටහනක් (Remark) ඇත්නම් මෙහි ලියන්න..."
+                                   class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-600 bg-white">
+                            <button onclick="acknowledgeDailyReport()" class="w-full py-3 ${mySeen ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold rounded-xl shadow flex items-center justify-center gap-2 text-xs btn-press">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                <span>${mySeen ? `✓ තහවුරු කර ඇත (${escapeHTML(mySeen.time)}) - යාවත්කාලීන කරන්න` : 'පණිවිඩය ලැබුණා / බැලුවා (Mark as Seen)'}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // TAB 2: SEEN LOG
+        function renderSeenTab() {
+            const activeUsers = getActivePersonnel();
+            const seenMap = new Map(state.seenLogs.map(s => [s.userId, s]));
+
+            const seenUsers = activeUsers.filter(u => seenMap.has(u.id));
+            const pendingUsers = activeUsers.filter(u => !seenMap.has(u.id));
+
+            return `
+                <div class="space-y-3.5 fade-in pb-6">
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h2 class="font-bold text-sm text-slate-900">පණිවිඩය බැලූ අය (Read Receipts)</h2>
+                                <p class="text-[11px] text-slate-500">සක්‍රීය Nominal Roll පිරිස අතුරින් වාර්තාව බැලූ සහ නොබැලූ අය</p>
+                            </div>
+                            <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800">
+                                ${seenUsers.length} / ${activeUsers.length}
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                            <div class="bg-emerald-500 h-2 rounded-full transition-all" style="width: ${activeUsers.length ? Math.round((seenUsers.length / activeUsers.length) * 100) : 0}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-xs text-emerald-800 mb-2.5 flex items-center gap-1.5">
+                            <i data-lucide="check-check" class="w-4 h-4"></i>
+                            <span>බැලූ සහ තහවුරු කළ නිලධාරීන් (${seenUsers.length})</span>
+                        </h3>
+                        <div class="space-y-2">
+                            ${seenUsers.length === 0 ? `<p class="text-xs text-slate-400">තවම කිසිවෙකු තහවුරු කර නොමැත.</p>` : seenUsers.map(u => {
+                                const info = seenMap.get(u.id);
+                                return `
+                                    <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <span class="text-xs font-bold text-slate-900">${escapeHTML(u.rank)} ${escapeHTML(u.name)}</span>
+                                                <span class="text-[10px] text-slate-500 ml-1">(${escapeHTML(u.serviceNo)} • ${escapeHTML(u.branch)})</span>
+                                            </div>
+                                            <span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">✓ ${escapeHTML(info.time)}</span>
+                                        </div>
+                                        ${info.remark ? `
+                                            <div class="mt-1.5 text-[11px] text-slate-700 bg-white px-2.5 py-1.5 rounded-lg border border-emerald-100">
+                                                💬 ${escapeHTML(info.remark)}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-xs text-amber-800 mb-2.5 flex items-center gap-1.5">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                            <span>තවම නොබැලූ නිලධාරීන් (${pendingUsers.length})</span>
+                        </h3>
+                        <div class="space-y-2">
+                            ${pendingUsers.length === 0 ? `<p class="text-xs text-emerald-600 font-semibold">🎉 සියලුම සක්‍රීය නිලධාරීන් පණිවිඩය බලා ඇත!</p>` : pendingUsers.map(u => {
+                                const waNum = formatWhatsAppLinkNumber(u.whatsapp || u.phone1);
+                                return `
+                                <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-800">${escapeHTML(u.rank)} ${escapeHTML(u.name)}</div>
+                                        <div class="text-[10px] text-slate-500">${escapeHTML(u.serviceNo)} • ${escapeHTML(u.branch)}</div>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        ${u.phone1 ? `
+                                            <a href="tel:${escapeHTML(u.phone1)}" class="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100" title="Call">
+                                                <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                            </a>
+                                        ` : ''}
+                                        ${waNum ? `
+                                            <a href="https://wa.me/${waNum}?text=${encodeURIComponent('කරුණාකර ROMS දෛනික වාර්තාව පරීක්ෂා කර Seen කරන්න.')}" target="_blank" class="p-1.5 rounded-lg bg-[#25D366] text-white" title="WhatsApp Reminder">
+                                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                            </a>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `}).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // TAB 3: TARGETED SPECIAL NOTICES
+        function renderSpecialNoticesTab() {
+            const currentUser = state.session.user;
+            const isAdmin = state.session.mode === 'admin';
+
+            const visibleNotices = state.specialNotices.filter(n =>
+                isAdmin || n.senderId === currentUser.id || n.recipientIds.includes(currentUser.id)
+            );
+
+            return `
+                <div class="space-y-3.5 fade-in pb-6">
+                    <div class="bg-indigo-900 text-white rounded-2xl p-4 shadow-md flex items-center justify-between gap-2">
+                        <div>
+                            <h2 class="font-bold text-sm">විශේෂ රහස්‍ය පණිවිඩ (Special Notices)</h2>
+                            <p class="text-[11px] text-indigo-200 mt-0.5">තෝරාගත් අයට පමණක් පෙනෙන පණිවිඩ සහ ක්‍රියාමාර්ග</p>
+                        </div>
+                        <button onclick="openCreateSpecialNoticeModal()" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow flex items-center gap-1.5 shrink-0 btn-press">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>නව පණිවිඩයක්</span>
+                        </button>
+                    </div>
+
+                    ${visibleNotices.length === 0 ? `
+                        <div class="bg-white rounded-2xl p-8 text-center border border-slate-200">
+                            <i data-lucide="mail-open" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+                            <p class="text-xs font-semibold text-slate-600">ඔබ වෙත යොමු කළ විශේෂ පණිවිඩ කිසිවක් නොමැත.</p>
+                        </div>
+                    ` : visibleNotices.map(notice => {
+                        const isRecipient = notice.recipientIds.includes(currentUser.id);
+                        const isSenderOrAdmin = isAdmin || notice.senderId === currentUser.id;
+                        const myResponse = notice.responses.find(r => r.userId === currentUser.id);
+
+                        return `
+                            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
+                                            🔒 රහස්‍ය පණිවිඩය • ${escapeHTML(notice.createdAt)}
+                                        </span>
+                                        <h3 class="font-bold text-sm text-slate-900 mt-1.5">${escapeHTML(notice.title)}</h3>
+                                        <p class="text-[11px] text-slate-500">යැවූ අය: <strong>${escapeHTML(notice.senderName)}</strong> • ලබන්නන්: ${notice.recipientIds.length} දෙනෙකි</p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 leading-relaxed whitespace-pre-line">
+                                    ${escapeHTML(notice.message)}
+                                </div>
+
+                                ${isRecipient ? `
+                                    <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[11px] font-bold text-blue-900">ඔබගේ ප්‍රතිචාරය සහ කළ ක්‍රියාමාර්ගය:</span>
+                                            ${myResponse ? `<span class="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full">✓ යවා ඇත (${escapeHTML(myResponse.time)})</span>` : ''}
+                                        </div>
+                                        <select id="resp-status-${notice.id}" class="w-full px-2.5 py-2 text-xs rounded-lg border border-blue-300 bg-white font-semibold">
+                                            <option value="ලැබුණා / Noted" ${myResponse?.status === 'ලැබුණා / Noted' ? 'selected' : ''}>✅ පණිවිඩය ලැබුණා (Noted)</option>
+                                            <option value="ක්‍රියාත්මක කළා / Action Taken" ${myResponse?.status === 'ක්‍රියාත්මක කළා / Action Taken' ? 'selected' : ''}>🛡️ ක්‍රියාත්මක කළා (Action Taken)</option>
+                                            <option value="වැඩිදුර උපදෙස් අවශ්‍යයි / Need Clarification" ${myResponse?.status === 'වැඩිදුර උපදෙස් අවශ්‍යයි / Need Clarification' ? 'selected' : ''}>❓ වැඩිදුර උපදෙස් අවශ්‍යයි</option>
+                                            <option value="ප්‍රමාද වේ / Delayed" ${myResponse?.status === 'ප්‍රමාද වේ / Delayed' ? 'selected' : ''}>⏳ ප්‍රමාද වේ (Delayed)</option>
+                                        </select>
+                                        <input id="resp-text-${notice.id}" type="text" value="${escapeHTML(myResponse ? myResponse.replyText : '')}"
+                                               placeholder="මොකද කළේ කියලා මෙහි Type කරන්න..."
+                                               class="w-full px-3 py-2 text-xs rounded-lg border border-blue-300 bg-white">
+                                        <button onclick="submitNoticeResponse('${notice.id}')" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg btn-press">
+                                            ${myResponse ? 'පිළිතුර යාවත්කාලීන කරන්න' : 'පිළිතුර සහ ක්‍රියාමාර්ගය යවන්න'}
+                                        </button>
+                                    </div>
+                                ` : ''}
+
+                                ${isSenderOrAdmin ? `
+                                    <div class="pt-2 border-t border-slate-200">
+                                        <div class="text-[11px] font-bold text-slate-700 mb-2">
+                                            📊 ප්‍රතිචාර වාර්තාව (${notice.responses.length} / ${notice.recipientIds.length} පිළිතුරු දී ඇත):
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            ${notice.recipientIds.map(recId => {
+                                                const recUser = getUserById(recId);
+                                                if (!recUser) return '';
+                                                const resp = notice.responses.find(r => r.userId === recId);
+                                                return `
+                                                    <div class="p-2.5 rounded-xl ${resp ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50 border border-slate-200'} text-xs">
+                                                        <div class="flex items-center justify-between">
+                                                            <span class="font-bold text-slate-800">${escapeHTML(recUser.rank)} ${escapeHTML(recUser.name)} <span class="text-[10px] font-normal text-slate-500">(${escapeHTML(recUser.branch)})</span></span>
+                                                            ${resp
+                                                                ? `<span class="text-[10px] font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded">${escapeHTML(resp.status)} • ${escapeHTML(resp.time)}</span>`
+                                                                : `<span class="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">⏳ පිළිතුරු බලාපොරොත්තුවෙන්</span>`
+                                                            }
+                                                        </div>
+                                                        ${resp ? `<div class="mt-1 text-[11px] text-slate-700 bg-white p-2 rounded border border-emerald-100">👉 <strong>කළ ක්‍රියාමාර්ගය:</strong> ${escapeHTML(resp.replyText)}</div>` : ''}
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // TAB 4: DUTY REPORT UPDATE FORM
+        function renderUpdateTab() {
+            const r = state.report;
+            const p = r.parade;
+            const heads = r.keyDutyHeads || {};
+            const activePersonnel = getActivePersonnel();
+
+            return `
+                <div class="space-y-3.5 fade-in pb-6">
+                    <div class="bg-amber-50 border border-amber-300 rounded-2xl p-3.5 flex items-center justify-between gap-2">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase bg-amber-200 text-amber-900 px-2 py-0.5 rounded">DUTY EDITOR</span>
+                            <h2 class="font-bold text-sm text-slate-900 mt-1">දෛනික වාර්තා යාවත්කාලීන කිරීම</h2>
+                            <p class="text-[11px] text-slate-600">Duty: <strong>${escapeHTML(state.session.user.rank)} ${escapeHTML(state.session.user.name)}</strong></p>
+                        </div>
+                        <button onclick="openPostSpecialAlertModal()" class="px-3 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold shadow btn-press shrink-0">
+                            🚨 Special Alert
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-sm space-y-2.5">
+                        <h3 class="font-bold text-xs text-amber-300 flex items-center gap-1.5">
+                            <i data-lucide="award" class="w-4 h-4"></i>
+                            <span>ප්‍රධාන රාජකාරි නිලධාරීන් (ඉහළින් පෙන්වීමට)</span>
+                        </h3>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-amber-200 mb-1">1. DUTY SNCO:</label>
+                                <select onchange="updateKeyDutyHead('dutySncoId', this.value)" class="w-full px-2.5 py-2 text-xs rounded-xl border border-slate-700 bg-slate-800 text-white font-semibold">
+                                    <option value="">-- තෝරන්න (Not Assigned) --</option>
+                                    ${activePersonnel.map(u => `<option value="${u.id}" ${heads.dutySncoId === u.id ? 'selected' : ''}>${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.branch)})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-blue-200 mb-1">2. CREW CHIEF:</label>
+                                <select onchange="updateKeyDutyHead('crewChiefId', this.value)" class="w-full px-2.5 py-2 text-xs rounded-xl border border-slate-700 bg-slate-800 text-white font-semibold">
+                                    <option value="">-- තෝරන්න (Not Assigned) --</option>
+                                    ${activePersonnel.map(u => `<option value="${u.id}" ${heads.crewChiefId === u.id ? 'selected' : ''}>${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.branch)})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-emerald-200 mb-1">3. CD DUTY:</label>
+                                <select onchange="updateKeyDutyHead('cdDutyId', this.value)" class="w-full px-2.5 py-2 text-xs rounded-xl border border-slate-700 bg-slate-800 text-white font-semibold">
+                                    <option value="">-- තෝරන්න (Not Assigned) --</option>
+                                    ${activePersonnel.map(u => `<option value="${u.id}" ${heads.cdDutyId === u.id ? 'selected' : ''}>${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.branch)})</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-xs text-slate-900">1. පෙළපාලි වාර්තාව (Parade State)</h3>
+                            <span class="text-xs font-bold bg-blue-100 text-blue-900 px-2.5 py-0.5 rounded-lg">මුළු: ${p.total}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            ${[
+                                { key: 'present', label: 'පැමිණි (Present)' },
+                                { key: 'leave', label: 'නිවාඩු (Leave)' },
+                                { key: 'duty', label: 'රාජකාරි (Duty)' },
+                                { key: 'course', label: 'පාඨමාලා (Course)' },
+                                { key: 'sick', label: 'අසනීප (Sick)' },
+                                { key: 'medicalSick', label: 'Medical Sick' },
+                                { key: 'attachOut', label: 'Attach Out' },
+                                { key: 'attachIn', label: 'Attach In' }
+                            ].map(item => `
+                                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <span class="text-[11px] font-bold text-slate-700">${item.label}</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <button onclick="adjustParadeCount('${item.key}', -1)" class="w-7 h-7 rounded-lg bg-white border border-slate-300 font-bold text-slate-700 btn-press">-</button>
+                                        <span class="w-5 text-center font-extrabold text-xs">${p[item.key] || 0}</span>
+                                        <button onclick="adjustParadeCount('${item.key}', 1)" class="w-7 h-7 rounded-lg bg-slate-900 text-white font-bold btn-press">+</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 space-y-2">
+                            <div class="text-[11px] font-bold text-slate-800">Medical Sick / Attach Out / Attach In කවුදැයි සටහන් කරන්න:</div>
+
+                            ${(r.paradeNominalDetails || []).length > 0 ? `
+                                <div class="space-y-1.5">
+                                    ${r.paradeNominalDetails.map(item => {
+                                        const u = getUserById(item.userId);
+                                        if (!u) return '';
+                                        return `
+                                            <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px]">
+                                                <div class="min-w-0">
+                                                    <span class="font-extrabold text-blue-800">[${escapeHTML(item.category)}]</span>
+                                                    <span class="font-bold text-slate-800 ml-1">${escapeHTML(u.rank)} ${escapeHTML(u.name)}</span>
+                                                    ${item.note ? `<span class="text-[10px] text-slate-500 block">${escapeHTML(item.note)}</span>` : ''}
+                                                </div>
+                                                <button onclick="removeParadeNominalDetail('${item.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+                                                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                                </button>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            ` : ''}
+
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <select id="pnd-cat-select" class="px-2 py-2 text-xs rounded-lg border border-slate-300 bg-white font-bold">
+                                    <option value="Medical Sick">Medical Sick</option>
+                                    <option value="Sick">Sick</option>
+                                    <option value="Attach Out">Attach Out</option>
+                                    <option value="Attach In">Attach In</option>
+                                    <option value="Leave">Leave</option>
+                                    <option value="Course">Course</option>
+                                </select>
+                                <select id="pnd-user-select" class="px-2 py-2 text-xs rounded-lg border border-slate-300 bg-white">
+                                    ${activePersonnel.map(u => `<option value="${u.id}">${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.serviceNo)})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <input id="pnd-note-input" type="text" placeholder="විස්තරය (උදා: Base Hospital / Katunayake)" class="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white">
+                                <button onclick="addParadeNominalDetail()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg btn-press shrink-0">
+                                    + එක් කරන්න
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-xs text-slate-900 mb-2.5">2. රාජකාරි සහ Shift සටහන් කිරීම (Duty & Shift)</h3>
+                        <div class="space-y-2 mb-3">
+                            ${r.nightDuty.map(duty => {
+                                const u = getUserById(duty.userId);
+                                if (!u || u.status !== 'Active') return '';
+                                const dName = duty.dutyType || duty.post || 'DUTY';
+                                return `
+                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-900 text-amber-300">${escapeHTML(dName)}</span>
+                                                <span class="text-[10px] font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">${escapeHTML(duty.shift)}</span>
+                                            </div>
+                                            <div class="text-[11px] font-bold text-slate-800 mt-1">${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.serviceNo)} • ${escapeHTML(u.branch)})</div>
+                                        </div>
+                                        <button onclick="removeNightDutyAssignment('${duty.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg shrink-0">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <div class="bg-slate-100 p-3 rounded-xl space-y-2 border border-slate-200">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-700 mb-1">Duty වර්ගය තෝරන්න (Select Duty Type):</label>
+                                <select id="nd-duty-type-select" onchange="document.getElementById('nd-custom-duty-wrap').classList.toggle('hidden', this.value !== 'CUSTOM')" class="w-full px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-bold text-slate-900">
+                                    ${DUTY_TYPES.map(dt => `<option value="${dt}">${dt}</option>`).join('')}
+                                    <option value="CUSTOM">+ වෙනත් Duty එකක් (Custom Duty)</option>
+                                </select>
+                            </div>
+
+                            <div id="nd-custom-duty-wrap" class="hidden">
+                                <input id="nd-custom-duty-input" type="text" placeholder="වෙනත් Duty නම ඇතුළත් කරන්න..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 bg-white uppercase">
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-700 mb-1">අදාළ පුද්ගලයා (Select Personnel):</label>
+                                    <select id="nd-user-select" class="w-full px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-semibold">
+                                        ${activePersonnel.map(u => `<option value="${u.id}">${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.branch)})</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-700 mb-1">Shift / කාල සීමාව (Duty Shift):</label>
+                                    <select id="nd-shift-select" class="w-full px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-semibold">
+                                        ${DUTY_SHIFTS.map(sh => `<option value="${sh}">${sh}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button onclick="addDutyAssignment()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg btn-press">
+                                + රාජකාරිය එක් කරන්න (Add Duty)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-xs text-slate-900">3. Night Briefing & විශේෂ උපදෙස්</h3>
+                            <button onclick="loadYesterdaysReport()" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
+                                📋 කලින් දවසේ දත්ත ගන්න
+                            </button>
+                        </div>
+                        <textarea id="edit-briefing-textarea" rows="4" class="w-full p-3 text-xs rounded-xl border border-slate-300 leading-relaxed">${escapeHTML(r.briefing)}</textarea>
+                    </div>
+
+                    <button onclick="saveDailyReportAndShare()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 text-xs btn-press">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>සුරකින්න & WhatsApp පණිවිඩය සකසන්න</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // TAB 5: UNIFIED NOMINAL ROLL MANAGEMENT
+        function renderNominalRollTab() {
+            const activeGroupObj = BRANCH_FILTER_GROUPS.find(g => g.id === state.nominalFilterGroup) || BRANCH_FILTER_GROUPS[0];
+            const sortedList = sortNominalRoll(state.nominalRoll);
+
+            const filtered = sortedList.filter(u => {
+                const matchGroup = !activeGroupObj.branches || activeGroupObj.branches.includes(u.branch);
+                const q = state.nominalSearch.toLowerCase();
+                const matchQuery = !q || u.name.toLowerCase().includes(q) || u.serviceNo.toLowerCase().includes(q) || u.rank.toLowerCase().includes(q) || u.branch.toLowerCase().includes(q);
+                return matchGroup && matchQuery;
+            });
+
+            const activeCount = state.nominalRoll.filter(u => u.status === 'Active').length;
+            const postedOutCount = state.nominalRoll.filter(u => u.status === 'Posted Out').length;
+
+            return `
+                <div class="space-y-3.5 fade-in pb-6">
+                    <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md flex items-center justify-between gap-2">
+                        <div>
+                            <h2 class="font-bold text-sm">එකම Nominal Roll ලැයිස්තුව</h2>
+                            <p class="text-[11px] text-slate-300 mt-0.5">සක්‍රීය: <strong class="text-emerald-400">${activeCount}</strong> • Posted Out: <strong class="text-amber-400">${postedOutCount}</strong></p>
+                        </div>
+                        <button onclick="openNominalFormModal()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow shrink-0 btn-press">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>+ සාමාජිකයෙකු එක් කරන්න</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm space-y-2.5">
+                        <input type="text" value="${escapeHTML(state.nominalSearch)}" oninput="state.nominalSearch = this.value; render();"
+                               placeholder="🔍 Service No, නම, නිලය හෝ Branch අනුව සොයන්න..."
+                               class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-slate-50">
+                        <div class="flex gap-1.5 overflow-x-auto pb-1">
+                            ${BRANCH_FILTER_GROUPS.map(g => `
+                                <button onclick="state.nominalFilterGroup = '${g.id}'; render();" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold shrink-0 transition ${state.nominalFilterGroup === g.id ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                                    ${escapeHTML(g.label)}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        ${filtered.length === 0 ? `
+                            <div class="bg-white rounded-2xl p-6 text-center border border-slate-200 text-xs text-slate-500">
+                                මෙම කාණ්ඩය යටතේ සාමාජිකයින් නොමැත.
+                            </div>
+                        ` : (() => {
+                            let lastBranch = '';
+                            return filtered.map((u) => {
+                                const isActive = u.status === 'Active';
+                                const waNum = formatWhatsAppLinkNumber(u.whatsapp || u.phone1);
+                                const showBranchDivider = u.branch !== lastBranch;
+                                lastBranch = u.branch;
+
+                                return `
+                                    ${showBranchDivider ? `
+                                        <div class="pt-1 flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-slate-800 text-white">
+                                                ${escapeHTML(u.branch)}
+                                            </span>
+                                            <div class="h-px bg-slate-300 flex-1"></div>
+                                        </div>
+                                    ` : ''}
+                                    <div class="bg-white rounded-2xl p-3.5 border ${isActive ? 'border-slate-200' : 'border-amber-300 bg-amber-50/40 opacity-85'} shadow-sm">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-900 text-white">${escapeHTML(u.serviceNo)}</span>
+                                                    <span class="text-xs font-extrabold text-slate-900">${escapeHTML(u.rank)} ${escapeHTML(u.name)}</span>
+                                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${escapeHTML(u.branch)}</span>
+                                                </div>
+                                                <div class="text-[11px] text-slate-500 mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                                                    <span>🔑 PIN: <strong class="text-slate-800">${escapeHTML(u.pin || '••••')}</strong></span>
+                                                    ${u.whatsapp || u.phone1 ? `<span>📱 ${escapeHTML(u.whatsapp || u.phone1)}</span>` : '<span class="text-slate-400">📱 අංකයක් නැත</span>'}
+                                                    ${u.phone2 ? `<span>📞 ${escapeHTML(u.phone2)}</span>` : ''}
+                                                </div>
+                                            </div>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-200 text-amber-900'}">
+                                                ${isActive ? '● Active' : '⏸ Posted Out'}
+                                            </span>
+                                        </div>
+
+                                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1 flex-wrap">
+                                            <div class="flex items-center gap-1">
+                                                ${u.phone1 || u.whatsapp ? `
+                                                    <a href="tel:${escapeHTML(u.phone1 || u.whatsapp)}" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold flex items-center gap-1">
+                                                        <i data-lucide="phone" class="w-3 h-3"></i> Call
+                                                    </a>
+                                                ` : ''}
+                                                ${waNum ? `
+                                                    <a href="https://wa.me/${waNum}" target="_blank" class="px-2 py-1 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                                                        <i data-lucide="message-circle" class="w-3 h-3"></i> WA
+                                                    </a>
+                                                ` : ''}
+                                            </div>
+
+                                            <div class="flex items-center gap-1">
+                                                <button onclick="openNominalFormModal('${u.id}')" class="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold">
+                                                    Edit
+                                                </button>
+                                                ${u.role !== 'admin' ? `
+                                                    <button onclick="toggleMemberStatus('${u.id}')" class="px-2 py-1 rounded-lg ${isActive ? 'bg-amber-100 hover:bg-amber-200 text-amber-900' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'} text-[10px] font-bold">
+                                                        ${isActive ? 'Posting Out' : 'Active'}
+                                                    </button>
+                                                    <button onclick="confirmPermanentDeleteMember('${u.id}')" class="px-2 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 text-[10px] font-bold flex items-center gap-0.5" title="සම්පූර්ණයෙන්ම මකන්න">
+                                                        <i data-lucide="trash-2" class="w-3 h-3"></i> මකන්න
+                                                    </button>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        })()}
+                    </div>
+                </div>
+            `;
+        }
+
+        // TAB 6: ADMIN AUDIT LOGS & QR CONTROL
+        function renderAdminLogsTab() {
+            return `
+                <div class="space-y-3.5 fade-in pb-6">
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs text-slate-900">QR කේත ආරක්ෂාව (QR Token Control)</h3>
+                            <p class="text-[11px] text-slate-500">වත්මන් අනුවාදය: Token v${state.report.qrTokenVersion}.0</p>
+                        </div>
+                        <button onclick="confirmRotateQRCodes()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 btn-press">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            <span>QR අලුත් කරන්න</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                <i data-lucide="activity" class="w-4 h-4 text-blue-600"></i>
+                                <span>සම්පූර්ණ පද්ධති පිවිසුම් වාර්තාව (Audit Log)</span>
+                            </h3>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">${state.auditLogs.length} Logs</span>
+                        </div>
+                        <div class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                            ${state.auditLogs.map(log => {
+                                const badgeStyle = log.mode.includes('Duty')
+                                    ? 'bg-amber-100 text-amber-900'
+                                    : log.mode.includes('Admin') || log.mode.includes('Nominal')
+                                        ? 'bg-rose-100 text-rose-800'
+                                        : log.mode.includes('Special') || log.mode.includes('ADSO')
+                                            ? 'bg-indigo-100 text-indigo-800'
+                                            : 'bg-blue-100 text-blue-800';
+                                return `
+                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                            <span class="font-bold text-slate-800">${escapeHTML(log.user)}</span>
+                                            <span class="text-[10px] text-slate-500 font-semibold shrink-0">${escapeHTML(log.time)}</span>
+                                        </div>
+                                        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded ${badgeStyle} mb-1">${escapeHTML(log.mode)}</span>
+                                        <p class="text-[11px] text-slate-600">${escapeHTML(log.action)}</p>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // AUTHENTICATED SHELL + GLOBAL SPECIAL ALERT BANNER
+        function renderAuthenticatedApp() {
+            const { user, mode } = state.session;
+            const canEdit = mode === 'duty' || mode === 'admin';
+            const isAdmin = mode === 'admin';
+            const alertObj = state.report.specialAlert;
+
+            const unreadSpecialCount = state.specialNotices.filter(n =>
+                n.recipientIds.includes(user.id) && !n.responses.some(r => r.userId === user.id)
+            ).length;
+
+            const modeBadge = {
+                general: { text: 'General QR', cls: 'bg-blue-500/20 text-blue-200 border-blue-400/30' },
+                duty: { text: 'Duty QR', cls: 'bg-amber-500/20 text-amber-200 border-amber-400/30' },
+                admin: { text: 'Super Admin', cls: 'bg-rose-500/20 text-rose-200 border-rose-400/30' }
+            }[mode];
+
+            return `
+                <header class="bg-slate-900 text-white px-4 py-3 sticky top-0 z-30 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-[10px] text-blue-400 shrink-0 text-center leading-tight px-1">
+                                ${escapeHTML(user.rank)}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-bold text-xs truncate">${escapeHTML(user.name)}</span>
+                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-blue-600 text-white shrink-0">ROMS</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded border ${modeBadge.cls} font-bold">${modeBadge.text}</span>
+                                    <span class="text-[10px] text-slate-400">${escapeHTML(user.serviceNo)} • ${escapeHTML(user.branch)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="openQRModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300" title="QR Codes">
+                                <i data-lucide="qr-code" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="logout()" class="px-2.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-bold flex items-center gap-1">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                                <span>Exit</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                ${alertObj && alertObj.active ? `
+                    <div class="mx-3 mt-3 bg-rose-50 border-2 border-rose-500 rounded-2xl p-3 shadow-sm urgent-alert-box">
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="siren" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-1">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-700">🚨 SPECIAL ALERT • ${escapeHTML(alertObj.time)}</span>
+                                    <button onclick="openPostSpecialAlertModal()" class="text-[10px] font-bold text-rose-700 underline">Edit</button>
+                                </div>
+                                <h4 class="text-xs font-bold text-slate-900 mt-0.5">${escapeHTML(alertObj.title)}</h4>
+                                <p class="text-[11px] text-slate-700 mt-0.5 leading-snug">${escapeHTML(alertObj.message)}</p>
+                                <div class="text-[10px] text-slate-500 mt-1">පළ කළේ: ${escapeHTML(alertObj.postedBy)}</div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <main class="flex-1 px-3 pt-3">
+                    ${state.activeTab === 'briefing' ? renderBriefingTab() : ''}
+                    ${state.activeTab === 'seen' ? renderSeenTab() : ''}
+                    ${state.activeTab === 'notices' ? renderSpecialNoticesTab() : ''}
+                    ${state.activeTab === 'update' && canEdit ? renderUpdateTab() : ''}
+                    ${state.activeTab === 'nominal' && isAdmin ? renderNominalRollTab() : ''}
+                    ${state.activeTab === 'admin' && isAdmin ? renderAdminLogsTab() : ''}
+                </main>
+
+                ${renderIdentityFooter()}
+
+                <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] bg-white border-t border-slate-200 px-1.5 py-1.5 flex items-center justify-around z-30 shadow-[0_-4px_15px_rgba(0,0,0,0.06)]">
+                    <button onclick="switchTab('briefing')" class="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition ${state.activeTab === 'briefing' ? 'text-blue-600 font-bold bg-blue-50' : 'text-slate-500 font-medium'}">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span class="text-[10px]">වාර්තාව</span>
+                    </button>
+
+                    <button onclick="switchTab('seen')" class="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition ${state.activeTab === 'seen' ? 'text-emerald-700 font-bold bg-emerald-50' : 'text-slate-500 font-medium'}">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                        <span class="text-[10px]">බැලූ අය</span>
+                    </button>
+
+                    <button onclick="switchTab('notices')" class="relative flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition ${state.activeTab === 'notices' ? 'text-indigo-700 font-bold bg-indigo-50' : 'text-slate-500 font-medium'}">
+                        <i data-lucide="mail-warning" class="w-4 h-4"></i>
+                        <span class="text-[10px]">විශේෂ පණිවිඩ</span>
+                        ${unreadSpecialCount > 0 ? `<span class="absolute top-1 right-3 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center">${unreadSpecialCount}</span>` : ''}
+                    </button>
+
+                    ${canEdit ? `
+                        <button onclick="switchTab('update')" class="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition ${state.activeTab === 'update' ? 'text-amber-700 font-bold bg-amber-50' : 'text-slate-500 font-medium'}">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            <span class="text-[10px]">Update</span>
+                        </button>
+                    ` : ''}
+
+                    ${isAdmin ? `
+                        <button onclick="switchTab('nominal')" class="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition ${state.activeTab === 'nominal' ? 'text-blue-800 font-bold bg-blue-100/70' : 'text-slate-500 font-medium'}">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                            <span class="text-[10px]">Nominal</span>
+                        </button>
+                        <button onclick="switchTab('admin')" class="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition ${state.activeTab === 'admin' ? 'text-rose-700 font-bold bg-rose-50' : 'text-slate-500 font-medium'}">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            <span class="text-[10px]">Logs</span>
+                        </button>
+                    ` : ''}
+                </nav>
+            `;
+        }
+
+        function switchTab(tab) {
+            state.activeTab = tab;
+            render();
+        }
+
+        function render() {
+            const appEl = document.getElementById('app');
+            if (!state.session) {
+                appEl.innerHTML = renderLoginScreen();
+            } else {
+                appEl.innerHTML = renderAuthenticatedApp();
+            }
+            lucide.createIcons();
+        }
+
+        // Start App, Pull Cloud Data First, and Enable Live Sync
+        render();
+        pullInitialCloudState(true);
+        setupRealtimeSubscription();
+    </script>
+</body>
+</html>
