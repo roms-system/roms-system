@@ -75,7 +75,7 @@
         /**
          * ROMS - Radar Operation Management System
          * Identity: Created by 41016
-         * Standardized Branches: ADSO, AIR RADIO, ELECTRICIAN, CET, OMT, ADMIN ASSISTANT, OPS GUARD
+         * Architecture: Open General Read View + Cloud-Backed SHA-256 PIN Auth + Self-Service PIN Change
          */
 
         const ROMS_IDENTITY = {
@@ -168,253 +168,65 @@
             return r;
         }
 
-        const DEFAULT_NOMINAL_ROLL = [
-            {
-                id: 'u_admin',
-                serviceNo: 'ADMIN',
-                rank: 'SUPER ADMIN',
-                name: 'Unit Super Admin',
-                branch: 'ADSO',
-                phone1: '',
-                phone2: '',
-                whatsapp: '',
-                pin: '9999',
-                role: 'admin',
-                status: 'Active'
-            },
-            {
-                id: 'u_30016',
-                serviceNo: '30016',
-                rank: 'WO',
-                name: 'GLNM SAMPATH',
-                branch: 'ADSO',
-                phone1: '076154007',
-                phone2: '',
-                whatsapp: '076154007',
-                pin: '1001',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_31040',
-                serviceNo: '31040',
-                rank: 'WO',
-                name: 'SAI ASANKA',
-                branch: 'ADSO',
-                phone1: '0771765785',
-                phone2: '',
-                whatsapp: '0771765785',
-                pin: '1002',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_31700',
-                serviceNo: '31700',
-                rank: 'F/SGT',
-                name: 'KUMARA SSWGSP',
-                branch: 'ADSO',
-                phone1: '0765803919',
-                phone2: '',
-                whatsapp: '0765803919',
-                pin: '1003',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_41016',
-                serviceNo: '41016',
-                rank: 'SGT',
-                name: 'FERNANDO MSN',
-                branch: 'ADSO',
-                phone1: '0761315454',
-                phone2: '',
-                whatsapp: '0761315454',
-                pin: '1004',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_33074',
-                serviceNo: '33074',
-                rank: 'F/SGT',
-                name: 'SADEEK AKM',
-                branch: 'AIR RADIO',
-                phone1: '0716595323',
-                phone2: '',
-                whatsapp: '0716595323',
-                pin: '1005',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_022654',
-                serviceNo: '022654',
-                rank: 'CPL',
-                name: 'BANDA PGN',
-                branch: 'CET',
-                phone1: '0702137544',
-                phone2: '',
-                whatsapp: '0702137544',
-                pin: '1006',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_014751',
-                serviceNo: '014751',
-                rank: 'F/SGT',
-                name: 'DESHAPPRIYA PADM',
-                branch: 'OMT',
-                phone1: '',
-                phone2: '',
-                whatsapp: '',
-                pin: '1007',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_aw5807',
-                serviceNo: 'AW 5807',
-                rank: 'LAC',
-                name: 'VIPULASENA',
-                branch: 'ADMIN ASSISTANT',
-                phone1: '0765759621',
-                phone2: '',
-                whatsapp: '0765759621',
-                pin: '1009',
-                role: 'officer',
-                status: 'Active'
-            },
-            {
-                id: 'u_30760',
-                serviceNo: '30760',
-                rank: 'F/SGT',
-                name: 'WICKRAMASINGHE',
-                branch: 'OPS GUARD',
-                phone1: '0740365499',
-                phone2: '',
-                whatsapp: '0740365499',
-                pin: '1008',
-                role: 'officer',
-                status: 'Active'
-            }
-        ];
-
-        const DEFAULT_REPORT = {
-            date: new Date().toISOString().split('T')[0],
-            unitName: 'ROMS — Radar Operation Management System',
-            keyDutyHeads: {
-                dutySncoId: 'u_31700',
-                crewChiefId: 'u_30016',
-                cdDutyId: 'u_31040'
-            },
-            parade: {
-                total: 10,
-                present: 8,
-                leave: 1,
-                duty: 0,
-                sick: 0,
-                medicalSick: 1,
-                course: 0,
-                attachOut: 0,
-                attachIn: 0
-            },
-            paradeNominalDetails: [
-                { id: 'pnd_1', category: 'Leave', userId: 'u_014751', note: 'Annual Leave' },
-                { id: 'pnd_2', category: 'Medical Sick', userId: 'u_aw5807', note: 'Base Hospital / Sick Report' }
-            ],
-            nightDuty: [
-                { id: 'nd1', dutyType: 'ADSO DUTY', userId: 'u_41016', shift: 'Night Shift (2000 - 0600 hrs)' },
-                { id: 'nd2', dutyType: 'RADAR FITTER DUTY', userId: 'u_022654', shift: 'Night Shift (2000 - 0600 hrs)' },
-                { id: 'nd3', dutyType: 'SENIOR PASSENGER GUARD DUTY', userId: 'u_30760', shift: '24 Hrs Duty' }
-            ],
-            briefing: "• රාත්‍රී 2100 න් පසු පරිශ්‍රයට ඇතුළු වන සියලුම වාහන දැඩි පරීක්ෂාවට ලක් කළ යුතුය.\n• සෑම පැයකට වරක්ම Ops Room වෙත Radio Check ලබා දිය යුතුය.\n• හදිසි අවස්ථාවකදී Duty SNCO / Crew Chief වහාම දැනුවත් කරන්න.",
-            yesterdayBackup: {
-                keyDutyHeads: { dutySncoId: 'u_31700', crewChiefId: 'u_30016', cdDutyId: 'u_31040' },
-                parade: { total: 10, present: 10, leave: 0, duty: 0, sick: 0, medicalSick: 0, course: 0, attachOut: 0, attachIn: 0 },
+        // Clean empty report skeleton (No fake sample personnel or hardcoded PINs)
+        function createEmptyReportSkeleton() {
+            return {
+                date: new Date().toISOString().split('T')[0],
+                unitName: 'ROMS — Radar Operation Management System',
+                keyDutyHeads: {
+                    dutySncoId: '',
+                    crewChiefId: '',
+                    cdDutyId: ''
+                },
+                parade: {
+                    total: 0,
+                    present: 0,
+                    leave: 0,
+                    duty: 0,
+                    sick: 0,
+                    medicalSick: 0,
+                    course: 0,
+                    attachOut: 0,
+                    attachIn: 0
+                },
                 paradeNominalDetails: [],
-                briefing: "• සාමාන්‍ය රාත්‍රී මුර සංචාර සහ රේඩියෝ පරීක්ෂාවන් නියමිත පරිදි පවත්වන්න.\n• උදෑසන 0600 ට පෙර රාත්‍රී වාර්තාව සම්පූර්ණ කරන්න."
-            },
-            dailyOpsBriefing: {
-                dateLabel: '22nd of November 2026',
-                sd: 'Sqn Ldr Bandara',
-                aso: 'WO Udeshana',
-                orp: 'JB F-7 S/L Fernando',
-                nightWatchUnit: '03 ADRS',
-                nightWatchTime: '0010-0600hrs',
-                nightWatchStandby: '05 ADRS',
-                svcItems: [
-                    'No 01 ADRS MMI 1st Day 0800 - 1800hrs.',
-                    '06 ADRS fault rectification N/OPS from 1000hrs 17.11.2026 to 1800hrs 19.11.2026'
-                ],
-                trg: 'Nil',
-                recee: 'Nil',
-                vvip: 'Nil',
-                adPlanHeader: 'For Parliament session',
-                adPlanItems: [
-                    '0930-1430hrs  JY Radar  S/By-07',
-                    '1430-1830hrs  No 07 ADRS  S/By JY11 Radar'
-                ],
-                notamItems: [
-                    'CBY R/W CLSD for all civil fixed wing A/C ,available for emergency & military purposes (from 1400-1900hrs 21.09.2026 to 20.12.2026)',
-                    'Paragliding at Rathkelle south area 0800-1800hrs 6000ft',
-                    'Paragliding at Punagala  area 0800-1800hrs 6400ft',
-                    'DNG Area VCD-05 ACT 0700-1700hrs 10000ft',
-                    'DNG Area VCD-02 ACT 0800-1600hrs 10000ft'
-                ],
-                otherItems: [
-                    'Sky Club Paramotor at Bentota 0830-1830hrs',
-                    'Lanka Ballons operate at Dambulla'
-                ],
-                updatedBy: 'WO GLNM SAMPATH (30016 - ADSO)',
-                updatedAt: '2026-11-22 • 07:15 PM'
-            },
-            specialAlert: {
-                active: true,
-                title: 'විශේෂ මෙහෙයුම් සහ ආරක්ෂක දැනුම්දීම',
-                message: 'අද රාත්‍රී රාජකාරියේ යෙදෙන සියලුම නිලධාරීන් නියමිත වේලාවට පෙර Ops Room වෙත වාර්තා කර Briefing ලබා ගන්න.',
-                postedBy: 'SUPER ADMIN Unit Super Admin',
-                time: '05:45 PM'
-            },
-            lastUpdatedBy: 'SGT FERNANDO MSN (41016)',
-            lastUpdatedAt: '06:30 PM',
-            qrTokenVersion: 1
-        };
-
-        const DEFAULT_SEEN_LOGS = [
-            { userId: 'u_41016', time: '06:31 PM', remark: 'Ops Room රාජකාරි සඳහා සූදානම්.' },
-            { userId: 'u_30016', time: '06:40 PM', remark: 'සටහන් කර ගත්තා.' }
-        ];
-
-        const DEFAULT_SPECIAL_NOTICES = [
-            {
-                id: 'sn_1',
-                title: 'හෙට උදෑසන පරීක්ෂණය - ADSO & AIR RADIO',
-                message: 'හෙට උදෑසන 0800 ට පැවැත්වෙන පරීක්ෂණය සඳහා සියලුම උපකරණ සහ ලේඛන සූදානම් කර තබා අදාළ ක්‍රියාමාර්ගය පිළිතුරු ලෙස එවන්න.',
-                senderId: 'u_admin',
-                senderName: 'SUPER ADMIN Unit Super Admin',
-                createdAt: '06:15 PM',
-                recipientIds: ['u_30016', 'u_31040', 'u_33074'],
-                responses: [
-                    {
-                        userId: 'u_30016',
-                        status: 'ක්‍රියාත්මක කළා / Action Taken',
-                        replyText: 'ADSO අංශයේ සියලුම ලේඛන පරීක්ෂා කර සූදානම් කර ඇත.',
-                        time: '06:45 PM'
-                    }
-                ]
-            }
-        ];
-
-        const DEFAULT_AUDIT_LOGS = [
-            { id: 'al1', time: '06:15 PM', user: 'SUPER ADMIN Unit Super Admin (ADMIN)', mode: 'Admin Portal', action: 'ADSO සහ AIR RADIO නිලධාරීන් 3 දෙනෙකුට විශේෂ පණිවිඩයක් (Special Notice) යවන ලදී.' },
-            { id: 'al2', time: '06:30 PM', user: 'SGT FERNANDO MSN (41016)', mode: 'Duty Handover QR', action: 'දෛනික පෙළපාලි වාර්තාව සහ Night Briefing යාවත්කාලීන කරන ලදී.' },
-            { id: 'al3', time: '06:40 PM', user: 'WO GLNM SAMPATH (30016)', mode: 'General QR', action: 'දෛනික වාර්තාව බලා තහවුරු කළේය (Seen).' }
-        ];
+                nightDuty: [],
+                briefing: 'දෛනික උපදෙස් තවම යාවත්කාලීන කර නොමැත.',
+                yesterdayBackup: null,
+                dailyOpsBriefing: {
+                    dateLabel: getFormattedOrdinalDate(),
+                    sd: '-',
+                    aso: '-',
+                    orp: '-',
+                    nightWatchUnit: '-',
+                    nightWatchTime: '-',
+                    nightWatchStandby: '-',
+                    svcItems: [],
+                    trg: 'Nil',
+                    recee: 'Nil',
+                    vvip: 'Nil',
+                    adPlanHeader: '',
+                    adPlanItems: [],
+                    notamItems: [],
+                    otherItems: [],
+                    updatedBy: '-',
+                    updatedAt: '-'
+                },
+                specialAlert: {
+                    active: false,
+                    title: '',
+                    message: '',
+                    postedBy: '',
+                    time: ''
+                },
+                lastUpdatedBy: '-',
+                lastUpdatedAt: '-',
+                qrTokenVersion: 1
+            };
+        }
 
         // ==========================================
-        // 2. SORTING, ESCAPING, FORMATTING & STATE PERSISTENCE
+        // 2. SORTING, ESCAPING, FORMATTING & STATE
         // ==========================================
         function escapeHTML(str) {
             return String(str ?? '')
@@ -441,17 +253,13 @@
                 const orderA = idxA === -1 ? 999 : idxA;
                 const orderB = idxB === -1 ? 999 : idxB;
 
-                if (orderA !== orderB) {
-                    return orderA - orderB;
-                }
-                if (a.branch !== b.branch) {
-                    return a.branch.localeCompare(b.branch);
-                }
+                if (orderA !== orderB) return orderA - orderB;
+                if (a.branch !== b.branch) return a.branch.localeCompare(b.branch);
+
                 const numA = extractNumericSerNo(a.serviceNo);
                 const numB = extractNumericSerNo(b.serviceNo);
-                if (numA !== numB) {
-                    return numA - numB;
-                }
+                if (numA !== numB) return numA - numB;
+
                 return String(a.serviceNo).localeCompare(String(b.serviceNo));
             });
         }
@@ -465,38 +273,52 @@
             return clean;
         }
 
-        const storedNominal = JSON.parse(localStorage.getItem('ops3_nominal'));
-        const storedReport = JSON.parse(localStorage.getItem('ops3_report'));
-        const mergedReport = storedReport ? {
-            ...DEFAULT_REPORT,
-            ...storedReport,
-            keyDutyHeads: { ...DEFAULT_REPORT.keyDutyHeads, ...(storedReport.keyDutyHeads || {}) },
-            parade: { ...DEFAULT_REPORT.parade, ...(storedReport.parade || {}) },
-            paradeNominalDetails: Array.isArray(storedReport.paradeNominalDetails) ? storedReport.paradeNominalDetails : DEFAULT_REPORT.paradeNominalDetails,
-            nightDuty: Array.isArray(storedReport.nightDuty)
-                ? storedReport.nightDuty.map(d => ({
-                    ...d,
-                    dutyType: d.dutyType || d.post || 'ADSO DUTY'
-                }))
-                : DEFAULT_REPORT.nightDuty
-        } : DEFAULT_REPORT;
+        function getFormattedOrdinalDate(dateObj = new Date()) {
+            const day = dateObj.getDate();
+            const suffix = (day % 10 === 1 && day !== 11) ? 'st'
+                : (day % 10 === 2 && day !== 12) ? 'nd'
+                : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${day}${suffix} of ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        }
+
+        const cachedNominal = JSON.parse(localStorage.getItem('roms_v2_nominal') || 'null');
+        const cachedReport = JSON.parse(localStorage.getItem('roms_v2_report') || 'null');
+        const baseSkeleton = createEmptyReportSkeleton();
+        const mergedReport = cachedReport ? {
+            ...baseSkeleton,
+            ...cachedReport,
+            keyDutyHeads: { ...baseSkeleton.keyDutyHeads, ...(cachedReport.keyDutyHeads || {}) },
+            parade: { ...baseSkeleton.parade, ...(cachedReport.parade || {}) },
+            paradeNominalDetails: Array.isArray(cachedReport.paradeNominalDetails) ? cachedReport.paradeNominalDetails : [],
+            nightDuty: Array.isArray(cachedReport.nightDuty)
+                ? cachedReport.nightDuty.map(d => ({ ...d, dutyType: d.dutyType || d.post || 'ADSO DUTY' }))
+                : []
+        } : baseSkeleton;
 
         let state = {
-            nominalRoll: sortNominalRoll(storedNominal || DEFAULT_NOMINAL_ROLL),
+            nominalRoll: sortNominalRoll(cachedNominal || []),
             report: mergedReport,
-            seenLogs: JSON.parse(localStorage.getItem('ops3_seen')) || DEFAULT_SEEN_LOGS,
-            specialNotices: JSON.parse(localStorage.getItem('ops3_notices')) || DEFAULT_SPECIAL_NOTICES,
-            auditLogs: JSON.parse(localStorage.getItem('ops3_audit')) || DEFAULT_AUDIT_LOGS,
+            seenLogs: JSON.parse(localStorage.getItem('roms_v2_seen') || '[]'),
+            specialNotices: JSON.parse(localStorage.getItem('roms_v2_notices') || '[]'),
+            auditLogs: JSON.parse(localStorage.getItem('roms_v2_audit') || '[]'),
+            // session === null means Public / General Open View (No PIN needed to view!)
             session: null,
-            loginStep: 'qr_select',
-            selectedQrMode: 'general',
-            selectedLoginUserId: '',
-            pinBuffer: '',
             activeTab: 'briefing',
             nominalFilterGroup: 'ALL',
             nominalSearch: '',
             cloudStatus: 'Connecting...',
-            cloudErrorDetail: ''
+            cloudErrorDetail: '',
+            initialCloudLoaded: false,
+            // Interactive UI states
+            selectedParadeBox: null,
+            dutyRosterExpanded: true,
+            expandedDutyIds: {},
+            // Auth modal state
+            authModalMode: 'general',
+            authSelectedUserId: '',
+            authPinBuffer: '',
+            pendingActionAfterAuth: null
         };
 
         // ==========================================
@@ -517,7 +339,7 @@
                     const buf = await window.crypto.subtle.digest('SHA-256', enc);
                     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
                 }
-            } catch (e) { /* fallback below */ }
+            } catch (e) { /* fallback */ }
             return 'plain_' + String(pinText || '');
         }
 
@@ -530,11 +352,11 @@
 
         function saveLocalCacheOnly() {
             state.nominalRoll = sortNominalRoll(state.nominalRoll);
-            localStorage.setItem('ops3_nominal', JSON.stringify(state.nominalRoll));
-            localStorage.setItem('ops3_report', JSON.stringify(state.report));
-            localStorage.setItem('ops3_seen', JSON.stringify(state.seenLogs));
-            localStorage.setItem('ops3_notices', JSON.stringify(state.specialNotices));
-            localStorage.setItem('ops3_audit', JSON.stringify(state.auditLogs));
+            localStorage.setItem('roms_v2_nominal', JSON.stringify(state.nominalRoll));
+            localStorage.setItem('roms_v2_report', JSON.stringify(state.report));
+            localStorage.setItem('roms_v2_seen', JSON.stringify(state.seenLogs));
+            localStorage.setItem('roms_v2_notices', JSON.stringify(state.specialNotices));
+            localStorage.setItem('roms_v2_audit', JSON.stringify(state.auditLogs));
         }
 
         async function syncStateToSupabase() {
@@ -546,7 +368,6 @@
                 state.cloudErrorDetail = '';
                 render();
 
-                // 1. Sync main report
                 const { error: repErr } = await client.from('daily_reports').upsert({
                     id: 'main_report',
                     report_data: state.report,
@@ -554,7 +375,6 @@
                 });
                 if (repErr) throw repErr;
 
-                // 2. Sync nominal roll (preserve existing pinHash if pin is empty)
                 const nominalRows = await Promise.all(state.nominalRoll.map(async (u) => ({
                     id: u.id,
                     service_no: u.serviceNo,
@@ -574,7 +394,6 @@
                     if (nomErr) throw nomErr;
                 }
 
-                // 3. Sync seen logs
                 const seenRows = state.seenLogs.map(s => ({
                     user_id: s.userId,
                     seen_time: s.time,
@@ -586,7 +405,6 @@
                     if (seenErr) throw seenErr;
                 }
 
-                // 4. Sync special notices
                 const noticeRows = state.specialNotices.map(n => ({
                     id: n.id,
                     notice_data: n,
@@ -597,7 +415,6 @@
                     if (notErr) throw notErr;
                 }
 
-                // 5. Sync latest audit logs
                 const auditRows = state.auditLogs.slice(0, 100).map(a => ({
                     id: a.id,
                     log_time: a.time,
@@ -616,7 +433,7 @@
             } catch (err) {
                 console.error('Supabase Sync Error:', err);
                 state.cloudStatus = 'Sync Error';
-                state.cloudErrorDetail = err?.message || 'RLS Policy හෝ API Key පරීක්ෂා කරන්න.';
+                state.cloudErrorDetail = err?.message || 'Supabase RLS / Connection දෝෂයකි.';
                 showToast('Cloud Sync දෝෂය: ' + state.cloudErrorDetail, 'error');
                 render();
             }
@@ -626,6 +443,7 @@
             const client = getSupabaseClient();
             if (!client) {
                 state.cloudStatus = 'Offline Mode';
+                state.initialCloudLoaded = true;
                 render();
                 return;
             }
@@ -641,25 +459,20 @@
 
                 if (repErr) throw repErr;
 
+                const skeleton = createEmptyReportSkeleton();
                 if (repRows && repRows.report_data) {
                     state.report = {
-                        ...DEFAULT_REPORT,
+                        ...skeleton,
                         ...repRows.report_data,
-                        keyDutyHeads: { ...DEFAULT_REPORT.keyDutyHeads, ...(repRows.report_data.keyDutyHeads || {}) },
-                        parade: { ...DEFAULT_REPORT.parade, ...(repRows.report_data.parade || {}) }
+                        keyDutyHeads: { ...skeleton.keyDutyHeads, ...(repRows.report_data.keyDutyHeads || {}) },
+                        parade: { ...skeleton.parade, ...(repRows.report_data.parade || {}) }
                     };
-                } else {
-                    // First time setup: push initial report to empty cloud table
-                    isPullingFromCloud = false;
-                    await syncStateToSupabase();
-                    return;
                 }
 
-                // 2. Pull nominal_roll
+                // 2. Pull nominal_roll (No hardcoded PINs stored in HTML)
                 const { data: nomRows, error: nomErr } = await client.from('nominal_roll').select('*');
                 if (nomErr) throw nomErr;
-                if (Array.isArray(nomRows) && nomRows.length > 0) {
-                    const localPinMap = new Map(state.nominalRoll.map(u => [u.id, u.pin]));
+                if (Array.isArray(nomRows)) {
                     state.nominalRoll = sortNominalRoll(nomRows.map(r => ({
                         id: r.id,
                         serviceNo: r.service_no,
@@ -669,8 +482,8 @@
                         phone1: r.phone1 || '',
                         phone2: r.phone2 || '',
                         whatsapp: r.whatsapp || '',
-                        pin: localPinMap.get(r.id) || '',
-                        pinHash: r.pin_hash,
+                        pin: '',
+                        pinHash: r.pin_hash || '',
                         role: r.role || 'officer',
                         status: r.status || 'Active'
                     })));
@@ -688,7 +501,7 @@
 
                 // 4. Pull special_notices
                 const { data: noticeRows, error: notErr } = await client.from('special_notices').select('notice_data');
-                if (!notErr && Array.isArray(noticeRows) && noticeRows.length > 0) {
+                if (!notErr && Array.isArray(noticeRows)) {
                     state.specialNotices = noticeRows.map(n => n.notice_data);
                 }
 
@@ -698,7 +511,7 @@
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(100);
-                if (!audErr && Array.isArray(auditRows) && auditRows.length > 0) {
+                if (!audErr && Array.isArray(auditRows)) {
                     state.auditLogs = auditRows.map(a => ({
                         id: a.id,
                         time: a.log_time,
@@ -711,6 +524,7 @@
                 saveLocalCacheOnly();
                 state.cloudStatus = 'Cloud Live ●';
                 state.cloudErrorDetail = '';
+                state.initialCloudLoaded = true;
                 isPullingFromCloud = false;
                 render();
                 if (!silent) {
@@ -718,6 +532,7 @@
                 }
             } catch (err) {
                 isPullingFromCloud = false;
+                state.initialCloudLoaded = true;
                 console.error('Supabase Pull Error:', err);
                 state.cloudStatus = 'Sync Error';
                 state.cloudErrorDetail = err?.message || 'Supabase RLS / Key දෝෂයකි.';
@@ -761,15 +576,6 @@
             return normalizeBranchName(user.branch) === 'ADSO' || user.role === 'admin';
         }
 
-        function getFormattedOrdinalDate(dateObj = new Date()) {
-            const day = dateObj.getDate();
-            const suffix = (day % 10 === 1 && day !== 11) ? 'st'
-                : (day % 10 === 2 && day !== 12) ? 'nd'
-                : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
-            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            return `${day}${suffix} of ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-        }
-
         function getCurrentTimeStr() {
             return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         }
@@ -788,6 +594,99 @@
                 action: actionText
             });
             saveState();
+        }
+
+        // ==========================================
+        // 2C. PARADE BOX BREAKDOWN & DUTY ROSTER TOGGLES
+        // ==========================================
+        function toggleParadeBox(boxKey) {
+            state.selectedParadeBox = (state.selectedParadeBox === boxKey) ? null : boxKey;
+            render();
+        }
+
+        function toggleDutyRosterExpand() {
+            state.dutyRosterExpanded = !state.dutyRosterExpanded;
+            render();
+        }
+
+        function toggleSingleDutyItem(dutyId) {
+            state.expandedDutyIds[dutyId] = !state.expandedDutyIds[dutyId];
+            render();
+        }
+
+        function getMembersForParadeBox(boxKey) {
+            const r = state.report;
+            const activeUsers = getActivePersonnel().filter(u => u.role !== 'admin');
+            const activeMap = new Map(activeUsers.map(u => [u.id, u]));
+            const details = (r.paradeNominalDetails || []).filter(item => activeMap.has(item.userId));
+
+            const categoryMatchers = {
+                leave: item => String(item.category || '').toLowerCase() === 'leave',
+                course: item => String(item.category || '').toLowerCase() === 'course',
+                sick: item => String(item.category || '').toLowerCase() === 'sick',
+                medicalSick: item => {
+                    const c = String(item.category || '').toLowerCase();
+                    return c === 'medical sick' || c === 'med. sick' || c === 'med sick';
+                },
+                attachOut: item => String(item.category || '').toLowerCase() === 'attach out',
+                attachIn: item => String(item.category || '').toLowerCase() === 'attach in'
+            };
+
+            if (categoryMatchers[boxKey]) {
+                return details
+                    .filter(categoryMatchers[boxKey])
+                    .map(item => {
+                        const u = activeMap.get(item.userId);
+                        return {
+                            user: u,
+                            subtitle: item.note ? `${item.category} • ${item.note}` : item.category
+                        };
+                    });
+            }
+
+            if (boxKey === 'duty') {
+                const dutyItems = (r.nightDuty || [])
+                    .filter(d => activeMap.has(d.userId))
+                    .map(d => {
+                        const u = activeMap.get(d.userId);
+                        const dName = d.dutyType || d.post || 'DUTY';
+                        return {
+                            user: u,
+                            subtitle: `${dName} (${d.shift || 'Duty'})`
+                        };
+                    });
+
+                const extraDutyDetails = details
+                    .filter(item => String(item.category || '').toLowerCase() === 'duty')
+                    .map(item => {
+                        const u = activeMap.get(item.userId);
+                        return {
+                            user: u,
+                            subtitle: item.note ? `Duty • ${item.note}` : 'Duty'
+                        };
+                    });
+
+                return [...dutyItems, ...extraDutyDetails];
+            }
+
+            if (boxKey === 'present') {
+                const excludedIds = new Set(details.map(item => item.userId));
+                (r.nightDuty || []).forEach(d => {
+                    if (activeMap.has(d.userId)) excludedIds.add(d.userId);
+                });
+                const presentList = activeUsers
+                    .filter(u => !excludedIds.has(u.id))
+                    .map(u => ({
+                        user: u,
+                        subtitle: `${u.branch} • Active Parade`
+                    }));
+                return presentList.length > 0 ? presentList : activeUsers.map(u => ({
+                    user: u,
+                    subtitle: `${u.branch} • Active`
+                }));
+            }
+
+            return [];
         }
 
         // ==========================================
@@ -824,7 +723,7 @@
         }
 
         // ==========================================
-        // 4. QR CODE GENERATOR & MODAL
+        // 4. QR CODE MODAL
         // ==========================================
         function generateQRSVG(seedText, color = '#0f172a') {
             let hash = 0;
@@ -858,7 +757,8 @@
 
         function openQRModal() {
             const modal = document.getElementById('modal-container');
-            const v = state.report.qrTokenVersion;
+            const v = state.report.qrTokenVersion || 1;
+            const liveUrl = window.location.href.split('#')[0];
             modal.innerHTML = `
                 <div class="bg-white w-full max-w-[430px] rounded-2xl shadow-2xl overflow-hidden fade-in max-h-[90vh] flex flex-col">
                     <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
@@ -873,23 +773,23 @@
                     <div class="p-4 overflow-y-auto space-y-4">
                         <div class="border border-blue-200 rounded-2xl p-4 text-center bg-blue-50/40">
                             <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 mb-2">
-                                1. GENERAL QR (සක්‍රීය නිලධාරීන් සඳහා)
+                                1. GENERAL VIEW (PIN නැතුව සැමට විවෘතයි)
                             </span>
-                            ${generateQRSVG('ROMS_GEN_QR_V' + v, '#1e3a8a')}
-                            <p class="text-[11px] text-slate-600 mt-2">දෛනික වාර්තා බැලීමට, Seen කිරීමට සහ විශේෂ පණිවිඩ සඳහා</p>
-                            <button onclick="closeModal(); selectQRMode('general')" class="mt-2.5 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl btn-press">
-                                General QR Scan කළා සේ පිවිසෙන්න →
+                            ${generateQRSVG(liveUrl, '#1e3a8a')}
+                            <p class="text-[11px] text-slate-600 mt-2">වාර්තා බැලීමට PIN අවශ්‍ය නැත. Seen / Duty Update සඳහා පමණක් PIN භාවිතා වේ.</p>
+                            <button onclick="closeModal(); openAuthModal('general')" class="mt-2.5 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl btn-press">
+                                නිලධාරී PIN පිවිසුම (Officer Login) →
                             </button>
                         </div>
 
                         <div class="border-2 border-amber-300 rounded-2xl p-4 text-center bg-amber-50/50">
                             <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 mb-2">
-                                2. DUTY HANDOVER QR (අද Duty භාර කෙනාට)
+                                2. DUTY HANDOVER (අද Duty භාර කෙනාට)
                             </span>
                             ${generateQRSVG('ROMS_DUTY_QR_V' + v, '#92400e')}
-                            <p class="text-[11px] text-slate-600 mt-2">Duty Room හි ඇත. පෙළපාලි වාර්තාව සහ Night Briefing Update කිරීමට</p>
-                            <button onclick="closeModal(); selectQRMode('duty')" class="mt-2.5 w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl btn-press">
-                                Duty Handover QR Scan කළා සේ පිවිසෙන්න →
+                            <p class="text-[11px] text-slate-600 mt-2">පෙළපාලි වාර්තාව, Duty Roster සහ Night Briefing Update කිරීමට</p>
+                            <button onclick="closeModal(); openAuthModal('duty')" class="mt-2.5 w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl btn-press">
+                                Duty Editor PIN පිවිසුම →
                             </button>
                         </div>
                     </div>
@@ -900,83 +800,168 @@
         }
 
         // ==========================================
-        // 5. AUTHENTICATION & NOMINAL ROLL ENFORCEMENT
+        // 5. PIN AUTHENTICATION MODAL & SELF-SERVICE PIN CHANGE
         // ==========================================
-        function selectQRMode(mode) {
-            state.selectedQrMode = mode;
-            state.loginStep = 'pin_entry';
-            state.selectedLoginUserId = '';
-            state.pinBuffer = '';
-            render();
+        function openAuthModal(mode = 'general', pendingAction = null) {
+            state.authModalMode = mode;
+            state.authSelectedUserId = '';
+            state.authPinBuffer = '';
+            state.pendingActionAfterAuth = pendingAction;
+            renderAuthModalContent();
         }
 
-        function backToQRSelect() {
-            state.loginStep = 'qr_select';
-            state.selectedLoginUserId = '';
-            state.pinBuffer = '';
-            render();
+        function renderAuthModalContent() {
+            const activeUsers = getActivePersonnel();
+            const modeConfig = {
+                general: {
+                    title: 'නිලධාරී PIN පිවිසුම',
+                    subtitle: 'Seen කිරීමට, විශේෂ පණිවිඩ බැලීමට හෝ PIN වෙනස් කිරීමට ඔබගේ 4-Digit PIN ගසන්න',
+                    badge: 'OFFICER PIN',
+                    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'
+                },
+                duty: {
+                    title: 'Duty Handover PIN පිවිසුම',
+                    subtitle: 'වාර්තා Update කිරීම සඳහා Duty භාර නිලධාරියාගේ 4-Digit PIN ඇතුළත් කරන්න',
+                    badge: 'DUTY EDITOR',
+                    badgeCls: 'bg-amber-100 text-amber-900 border-amber-300'
+                },
+                admin: {
+                    title: 'Super Admin පාලක පිවිසුම',
+                    subtitle: 'Nominal Roll, Audit Logs සහ QR පාලනය සඳහා Super Admin PIN',
+                    badge: 'SUPER ADMIN',
+                    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'
+                }
+            }[state.authModalMode];
+
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[400px] rounded-2xl shadow-2xl overflow-hidden fade-in">
+                    <div class="bg-slate-900 text-white px-4 py-3.5 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="key-round" class="w-4 h-4 text-blue-400"></i>
+                            <span class="font-bold text-xs">${modeConfig.title}</span>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-4 flex flex-col items-center">
+                        <div class="flex gap-1.5 w-full mb-3">
+                            <button onclick="openAuthModal('general', state.pendingActionAfterAuth)" class="flex-1 py-1.5 rounded-lg text-[10px] font-bold border ${state.authModalMode === 'general' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 text-slate-700 border-slate-200'}">
+                                Officer
+                            </button>
+                            <button onclick="openAuthModal('duty', state.pendingActionAfterAuth)" class="flex-1 py-1.5 rounded-lg text-[10px] font-bold border ${state.authModalMode === 'duty' ? 'bg-amber-600 text-white border-amber-600' : 'bg-slate-100 text-slate-700 border-slate-200'}">
+                                Duty Update
+                            </button>
+                            <button onclick="openAuthModal('admin', state.pendingActionAfterAuth)" class="flex-1 py-1.5 rounded-lg text-[10px] font-bold border ${state.authModalMode === 'admin' ? 'bg-rose-600 text-white border-rose-600' : 'bg-slate-100 text-slate-700 border-slate-200'}">
+                                Admin
+                            </button>
+                        </div>
+
+                        <p class="text-[11px] text-slate-500 text-center max-w-[300px]">${modeConfig.subtitle}</p>
+
+                        ${activeUsers.length === 0 && state.initialCloudLoaded ? `
+                            <div class="w-full mt-3 p-3 rounded-xl bg-amber-50 border border-amber-300 text-center space-y-2">
+                                <p class="text-[11px] text-amber-950 font-semibold">Database හි තවම Nominal Roll සාමාජිකයින් නොමැත.</p>
+                                <button onclick="openFirstAdminBootstrapModal()" class="w-full py-2 bg-slate-900 text-white text-xs font-bold rounded-lg btn-press">
+                                    + පළමු Super Admin ගිණුම සාදන්න
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="w-full max-w-[290px] mt-3">
+                                <select onchange="state.authSelectedUserId = this.value; state.authPinBuffer = ''; renderAuthModalContent();" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-semibold text-slate-800">
+                                    <option value="">-- නම තෝරන්න (හෝ කෙලින්ම PIN ගසන්න) --</option>
+                                    ${activeUsers
+                                        .filter(u => state.authModalMode === 'admin' ? u.role === 'admin' : true)
+                                        .map(u => `<option value="${u.id}" ${state.authSelectedUserId === u.id ? 'selected' : ''}>${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.branch)})</option>`)
+                                        .join('')}
+                                </select>
+                            </div>
+
+                            <div class="flex items-center justify-center gap-3.5 my-3.5">
+                                ${[0, 1, 2, 3].map(idx => `
+                                    <div class="w-11 h-12 rounded-2xl border-2 flex items-center justify-center text-xl font-bold ${state.authPinBuffer.length > idx ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-300 bg-white text-slate-300'}">
+                                        ${state.authPinBuffer.length > idx ? '●' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2 w-full max-w-[290px]">
+                                ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `
+                                    <button onclick="handleModalPinDigit('${n}')" class="py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 active:bg-blue-600 active:text-white border border-slate-200 shadow-sm text-lg font-bold text-slate-800 btn-press">
+                                        ${n}
+                                    </button>
+                                `).join('')}
+                                <div class="flex items-center justify-center text-[10px] text-slate-400 font-semibold text-center leading-tight">4-Digit<br>PIN</div>
+                                <button onclick="handleModalPinDigit('0')" class="py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 active:bg-blue-600 active:text-white border border-slate-200 shadow-sm text-lg font-bold text-slate-800 btn-press">
+                                    0
+                                </button>
+                                <button onclick="handleModalPinBackspace()" class="py-2.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center btn-press">
+                                    <i data-lucide="delete" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
         }
 
-        function handlePinDigit(digit) {
-            if (state.pinBuffer.length < 4) {
-                state.pinBuffer += digit;
-                render();
-                if (state.pinBuffer.length === 4) {
-                    setTimeout(verifyPinLogin, 150);
+        function handleModalPinDigit(digit) {
+            if (state.authPinBuffer.length < 4) {
+                state.authPinBuffer += digit;
+                renderAuthModalContent();
+                if (state.authPinBuffer.length === 4) {
+                    setTimeout(verifyModalPinLogin, 140);
                 }
             }
         }
 
-        function handlePinBackspace() {
-            state.pinBuffer = state.pinBuffer.slice(0, -1);
-            render();
+        function handleModalPinBackspace() {
+            state.authPinBuffer = state.authPinBuffer.slice(0, -1);
+            renderAuthModalContent();
         }
 
-        function quickDemoLogin(pin, modeOverride = null) {
-            if (modeOverride) state.selectedQrMode = modeOverride;
-            state.selectedLoginUserId = '';
-            state.pinBuffer = pin;
-            verifyPinLogin();
-        }
-
-        async function verifyPinLogin() {
+        async function verifyModalPinLogin() {
             let user = null;
-            const enteredHash = await hashPinSHA256(state.pinBuffer);
+            const enteredHash = await hashPinSHA256(state.authPinBuffer);
 
-            if (state.selectedLoginUserId) {
-                const candidate = getUserById(state.selectedLoginUserId);
-                if (candidate && (candidate.pin === state.pinBuffer || (candidate.pinHash && candidate.pinHash === enteredHash))) {
+            if (state.authSelectedUserId) {
+                const candidate = getUserById(state.authSelectedUserId);
+                if (candidate && (candidate.pin === state.authPinBuffer || (candidate.pinHash && candidate.pinHash === enteredHash))) {
                     user = candidate;
                 }
             } else {
-                user = state.nominalRoll.find(u => u.pin === state.pinBuffer || (u.pinHash && u.pinHash === enteredHash));
+                user = state.nominalRoll.find(u => u.pin === state.authPinBuffer || (u.pinHash && u.pinHash === enteredHash));
             }
 
             if (!user) {
                 showToast('වැරදි PIN අංකයකි! නැවත උත්සාහ කරන්න.', 'error');
-                state.pinBuffer = '';
-                render();
+                state.authPinBuffer = '';
+                renderAuthModalContent();
                 return;
             }
 
             if (user.status !== 'Active') {
                 showToast(`පිවිසුම අවලංගුයි! ${user.rank} ${user.name} (Posted Out) ලෙස සටහන්ව ඇත.`, 'error');
-                state.pinBuffer = '';
-                render();
+                state.authPinBuffer = '';
+                renderAuthModalContent();
                 return;
             }
 
-            if (state.selectedQrMode === 'admin' && user.role !== 'admin') {
+            if (state.authModalMode === 'admin' && user.role !== 'admin') {
                 showToast('Super Admin පිවිසුම සඳහා Admin PIN අවශ්‍ය වේ.', 'error');
-                state.pinBuffer = '';
-                render();
+                state.authPinBuffer = '';
+                renderAuthModalContent();
                 return;
             }
 
-            const effectiveMode = (user.role === 'admin' && state.selectedQrMode === 'admin') ? 'admin' : state.selectedQrMode;
+            const effectiveMode = (user.role === 'admin' && state.authModalMode === 'admin') ? 'admin' : state.authModalMode;
             const modeLabels = {
-                general: 'General QR',
-                duty: 'Duty Handover QR',
+                general: 'Officer PIN Login',
+                duty: 'Duty Handover PIN',
                 admin: 'Super Admin Portal'
             };
 
@@ -986,26 +971,215 @@
                 loginTime: getCurrentTimeStr()
             };
 
-            if (effectiveMode === 'admin') {
+            const pending = state.pendingActionAfterAuth;
+            state.pendingActionAfterAuth = null;
+            closeModal();
+
+            if (effectiveMode === 'admin' && !pending) {
                 state.activeTab = 'nominal';
-            } else if (effectiveMode === 'duty') {
+            } else if (effectiveMode === 'duty' && !pending) {
                 state.activeTab = 'update';
-            } else {
-                state.activeTab = 'briefing';
             }
 
-            logAudit(user, modeLabels[effectiveMode], 'ROMS පද්ධතියට ඇතුළු විය (Logged In).');
+            logAudit(user, modeLabels[effectiveMode], 'ROMS පද්ධතියට PIN මඟින් ඇතුළු විය.');
             showToast(`ආයුබෝවන්, ${user.rank} ${user.name}!`, 'success');
+            render();
+
+            if (pending === 'acknowledge') {
+                acknowledgeDailyReport();
+            } else if (pending === 'open_notices') {
+                state.activeTab = 'notices';
+                render();
+            } else if (pending === 'open_alert') {
+                openPostSpecialAlertModal();
+            } else if (pending === 'open_edit_ops') {
+                openEditOpsBriefingModal();
+            } else if (pending === 'change_pin') {
+                openChangeMyPinModal();
+            }
+        }
+
+        // First-time bootstrap only if DB nominal_roll is completely empty
+        function openFirstAdminBootstrapModal() {
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[400px] rounded-2xl shadow-2xl overflow-hidden fade-in">
+                    <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+                        <h3 class="font-bold text-sm">පළමු Super Admin ගිණුම සැකසීම</h3>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-4 space-y-3 text-xs">
+                        <p class="text-slate-600 bg-blue-50 border border-blue-200 p-2.5 rounded-xl">
+                            Database එකේ දැනට කිසිවෙකු නොමැති බැවින් මුල්ම Super Admin ගිණුම සාදා ආරම්භක 4-Digit PIN එකක් ලබා දෙන්න.
+                        </p>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Service No:</label>
+                            <input id="boot-sno" type="text" placeholder="උදා: ADMIN හෝ 41016" class="w-full px-3 py-2 rounded-xl border border-slate-300 uppercase">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">නම (Full Name):</label>
+                            <input id="boot-name" type="text" placeholder="උදා: UNIT ADMIN" class="w-full px-3 py-2 rounded-xl border border-slate-300 uppercase">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">ආරම්භක 4-Digit PIN:</label>
+                            <input id="boot-pin" type="password" inputmode="numeric" maxlength="4" placeholder="ඉලක්කම් 4ක PIN එකක්" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold">
+                        </div>
+                        <button onclick="createFirstBootstrapAdmin()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl btn-press">
+                            Super Admin සාදා ඇතුළු වන්න
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function createFirstBootstrapAdmin() {
+            const sno = document.getElementById('boot-sno').value.trim().toUpperCase() || 'ADMIN';
+            const name = document.getElementById('boot-name').value.trim().toUpperCase() || 'UNIT SUPER ADMIN';
+            const pin = document.getElementById('boot-pin').value.trim();
+
+            if (pin.length !== 4 || isNaN(pin)) {
+                showToast('ඉලක්කම් 4ක PIN අංකයක් ඇතුළත් කරන්න.', 'error');
+                return;
+            }
+
+            const pinHash = await hashPinSHA256(pin);
+            const adminUser = {
+                id: 'u_admin_' + Date.now(),
+                serviceNo: sno,
+                rank: 'SUPER ADMIN',
+                name,
+                branch: 'ADSO',
+                phone1: '',
+                phone2: '',
+                whatsapp: '',
+                pin: '',
+                pinHash,
+                role: 'admin',
+                status: 'Active'
+            };
+
+            state.nominalRoll.push(adminUser);
+            state.session = { user: adminUser, mode: 'admin', loginTime: getCurrentTimeStr() };
+            state.activeTab = 'nominal';
+            saveState();
+            closeModal();
+            showToast('Super Admin ගිණුම සාර්ථකව සැකසිණි!', 'success');
+            render();
+        }
+
+        // SELF-SERVICE PIN CHANGE (FOR ANY LOGGED-IN USER)
+        function openChangeMyPinModal() {
+            if (!state.session) {
+                openAuthModal('general', 'change_pin');
+                return;
+            }
+            const user = state.session.user;
+            const modal = document.getElementById('modal-container');
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-[400px] rounded-2xl shadow-2xl overflow-hidden fade-in">
+                    <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="key-round" class="w-5 h-5 text-amber-400"></i>
+                            <h3 class="font-bold text-sm">ඔබගේ PIN අංකය වෙනස් කිරීම</h3>
+                        </div>
+                        <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 space-y-3 text-xs">
+                        <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                            <div class="font-bold text-slate-900">${escapeHTML(user.rank)} ${escapeHTML(user.name)}</div>
+                            <div class="text-[11px] text-slate-500">${escapeHTML(user.serviceNo)} • ${escapeHTML(user.branch)}</div>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">වත්මන් PIN අංකය (Current 4-Digit PIN):</label>
+                            <input id="cp-old-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold tracking-widest">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">අලුත් PIN අංකය (New 4-Digit PIN):</label>
+                            <input id="cp-new-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold tracking-widest">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">අලුත් PIN අංකය නැවත ගසන්න (Confirm New PIN):</label>
+                            <input id="cp-confirm-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold tracking-widest">
+                        </div>
+
+                        <button onclick="submitChangeMyPin()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow btn-press">
+                            🔒 අලුත් PIN අංකය සුරකින්න
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function submitChangeMyPin() {
+            const user = state.session?.user;
+            if (!user) return;
+
+            const oldPin = document.getElementById('cp-old-pin').value.trim();
+            const newPin = document.getElementById('cp-new-pin').value.trim();
+            const confirmPin = document.getElementById('cp-confirm-pin').value.trim();
+
+            if (oldPin.length !== 4 || newPin.length !== 4 || isNaN(newPin)) {
+                showToast('ඉලක්කම් 4ක PIN අංක ඇතුළත් කරන්න.', 'error');
+                return;
+            }
+            if (newPin !== confirmPin) {
+                showToast('අලුත් PIN අංක දෙක සමාන නොවේ!', 'error');
+                return;
+            }
+
+            const oldHash = await hashPinSHA256(oldPin);
+            const isOldValid = (user.pin && user.pin === oldPin) || (user.pinHash && user.pinHash === oldHash);
+            if (!isOldValid) {
+                showToast('වත්මන් PIN අංකය වැරදියි!', 'error');
+                return;
+            }
+
+            const newHash = await hashPinSHA256(newPin);
+            const duplicateUser = state.nominalRoll.find(u => u.id !== user.id && (u.pin === newPin || u.pinHash === newHash));
+            if (duplicateUser) {
+                showToast('මෙම PIN අංකය වෙනත් සාමාජිකයෙකු භාවිතා කරයි. වෙනත් අංකයක් තෝරන්න.', 'error');
+                return;
+            }
+
+            const idx = state.nominalRoll.findIndex(u => u.id === user.id);
+            if (idx >= 0) {
+                state.nominalRoll[idx].pin = '';
+                state.nominalRoll[idx].pinHash = newHash;
+                state.session.user = state.nominalRoll[idx];
+            }
+
+            const client = getSupabaseClient();
+            if (client) {
+                await client.from('nominal_roll').update({
+                    pin_hash: newHash,
+                    updated_at: new Date().toISOString()
+                }).eq('id', user.id);
+            }
+
+            logAudit(user, 'Security', 'තම Personal PIN අංකය ආරක්ෂිතව වෙනස් කරගන්නා ලදී.');
+            saveLocalCacheOnly();
+            closeModal();
+            showToast('ඔබගේ PIN අංකය සාර්ථකව වෙනස් විය!', 'success');
             render();
         }
 
         function logout() {
             if (state.session) {
-                logAudit(state.session.user, 'System', 'ROMS පද්ධතියෙන් ඉවත් විය (Logged Out).');
+                logAudit(state.session.user, 'System', 'පිවිසුමෙන් ඉවත් විය (Switched to Public View).');
             }
             state.session = null;
-            state.loginStep = 'qr_select';
-            state.pinBuffer = '';
+            if (state.activeTab === 'update' || state.activeTab === 'nominal' || state.activeTab === 'admin' || state.activeTab === 'notices') {
+                state.activeTab = 'briefing';
+            }
             render();
         }
 
@@ -1013,6 +1187,10 @@
         // 6. DAILY BRIEFING, SEEN LOG & SPECIAL ALERT
         // ==========================================
         function acknowledgeDailyReport() {
+            if (!state.session) {
+                openAuthModal('general', 'acknowledge');
+                return;
+            }
             const user = state.session.user;
             const remarkEl = document.getElementById('briefing-remark-input');
             const remark = remarkEl ? remarkEl.value.trim() : '';
@@ -1033,7 +1211,7 @@
 
             logAudit(
                 user,
-                state.session.mode === 'duty' ? 'Duty Handover QR' : 'General QR',
+                state.session.mode === 'duty' ? 'Duty Handover' : 'Officer Seen',
                 remark ? `දෛනික වාර්තාව බලා Remark එක් කළේය: "${remark}"` : 'දෛනික වාර්තාව බලා තහවුරු කළේය (Seen).'
             );
             saveState();
@@ -1042,6 +1220,10 @@
         }
 
         function openPostSpecialAlertModal() {
+            if (!state.session) {
+                openAuthModal('duty', 'open_alert');
+                return;
+            }
             const alertObj = state.report.specialAlert || { active: false, title: '', message: '' };
             const modal = document.getElementById('modal-container');
             modal.innerHTML = `
@@ -1057,7 +1239,7 @@
                     </div>
                     <div class="p-4 space-y-3">
                         <p class="text-xs text-slate-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl">
-                            මෙම දැනුම්දීම පද්ධතියට ඇතුළු වන <strong>සියලුම දෙනාට</strong> තිරයේ ඉහළින්ම රතු පැහැති Alert එකක් ලෙස දිස්වේ.
+                            මෙම දැනුම්දීම පද්ධතිය විවෘත කරන <strong>සියලුම දෙනාට</strong> තිරයේ ඉහළින්ම රතු පැහැති Alert එකක් ලෙස දිස්වේ.
                         </p>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">මාතෘකාව (Alert Title):</label>
@@ -1131,7 +1313,7 @@
 
                     <div class="p-4 overflow-y-auto space-y-3.5">
                         <div class="bg-indigo-50 border border-indigo-200 p-2.5 rounded-xl text-[11px] text-indigo-900">
-                            🔒 <strong>ආරක්ෂිත පණිවිඩ:</strong> මෙහිදී ඔබ තෝරන නිලධාරීන්ට පමණක් මෙම පණිවිඩය දිස්වේ. ඔවුන්ට කළ ක්‍රියාමාර්ගය සඳහන් කර පිළිතුරු එවිය හැක.
+                            🔒 <strong>ආරක්ෂිත පණිවිඩ:</strong> මෙහිදී ඔබ තෝරන නිලධාරීන්ට පමණක් මෙම පණිවිඩය දිස්වේ.
                         </div>
 
                         <div>
@@ -1194,11 +1376,8 @@
 
         function selectRecipientsByBranch(branch) {
             document.querySelectorAll('input[name="sn-recipient"]').forEach(cb => {
-                if (branch === 'ALL') {
-                    cb.checked = true;
-                } else {
-                    cb.checked = (cb.getAttribute('data-branch') === branch);
-                }
+                if (branch === 'ALL') cb.checked = true;
+                else cb.checked = (cb.getAttribute('data-branch') === branch);
             });
         }
 
@@ -1259,11 +1438,8 @@
                 time: getCurrentTimeStr()
             };
 
-            if (existingIdx >= 0) {
-                notice.responses[existingIdx] = respObj;
-            } else {
-                notice.responses.push(respObj);
-            }
+            if (existingIdx >= 0) notice.responses[existingIdx] = respObj;
+            else notice.responses.push(respObj);
 
             logAudit(user, 'Special Notice Reply', `"${notice.title}" සඳහා පිළිතුරු යැවීය (${statusVal}): ${replyText}`);
             saveState();
@@ -1286,6 +1462,8 @@
                 }
                 showToast('කලින් දවසේ වාර්තා ආකෘතිය Load විය!', 'info');
                 render();
+            } else {
+                showToast('කලින් දවසේ Backup වාර්තාවක් තවම නොමැත.', 'warning');
             }
         }
 
@@ -1375,7 +1553,7 @@
 
             logAudit(
                 user,
-                state.session.mode === 'admin' ? 'Super Admin Portal' : 'Duty Handover QR',
+                state.session.mode === 'admin' ? 'Super Admin Portal' : 'Duty Handover',
                 'දෛනික පෙළපාලි වාර්තාව, Key Duties, Shift Duty සහ Night Briefing යාවත්කාලීන කරන ලදී.'
             );
             saveState();
@@ -1441,8 +1619,7 @@ ${dutyLines || '• ඇතුළත් කර නොමැත.'}
 ${r.briefing}
 ━━━━━━━━━━━━━━━━━━━━
 ✍️ සකස් කළේ: ${r.lastUpdatedBy} (${r.lastUpdatedAt})
-🛠️ System: ROMS • Created by ${ROMS_IDENTITY.createdBy}
-📲 _පණිවිඩය බැලූ බව තහවුරු කිරීමට (Seen) General QR එක Scan කරන්න._`;
+🛠️ System: ROMS • Created by ${ROMS_IDENTITY.createdBy}`;
         }
 
         function openWhatsAppPreviewModal() {
@@ -1613,6 +1790,10 @@ Good night sir`;
         }
 
         function openEditOpsBriefingModal() {
+            if (!state.session) {
+                openAuthModal('general', 'open_edit_ops');
+                return;
+            }
             if (!canEditOpsBriefing(state.session.user)) {
                 showToast('මෙම Briefing එක Edit කිරීමට අවසර ඇත්තේ ADSO Branch නිලධාරීන්ට පමණි!', 'error');
                 return;
@@ -1749,7 +1930,7 @@ Good night sir`;
 
                         <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-300 space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-amber-950">7) NOTAM (පවතින NOTAM ඉදිරියට ගෙන ඇත)</span>
+                                <span class="font-bold text-amber-950">7) NOTAM</span>
                             </div>
                             <div id="ob-notam-list" class="space-y-1.5">
                                 ${(b.notamItems || []).map(item => `
@@ -1759,14 +1940,14 @@ Good night sir`;
                                     </div>
                                 `).join('')}
                             </div>
-                            <button type="button" onclick="appendOpsTextareaRow('ob-notam-list', 'ob-notam-row', 'නව NOTAM විස්තරය (Sky diving / Paragliding / DNG Area)...')" class="w-full py-1.5 bg-white border border-dashed border-amber-500 rounded-lg text-[11px] font-bold text-amber-900 hover:bg-amber-100">
+                            <button type="button" onclick="appendOpsTextareaRow('ob-notam-list', 'ob-notam-row', 'නව NOTAM විස්තරය...')" class="w-full py-1.5 bg-white border border-dashed border-amber-500 rounded-lg text-[11px] font-bold text-amber-900 hover:bg-amber-100">
                                 + නව NOTAM එකක් එක් කරන්න
                             </button>
                         </div>
 
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-900">8) Other (Paramotor / Balloons / Special)</span>
+                                <span class="font-bold text-slate-900">8) Other</span>
                                 <button type="button" onclick="clearOpsListContainer('ob-other-list')" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Clear</button>
                             </div>
                             <div id="ob-other-list" class="space-y-1.5">
@@ -1777,7 +1958,7 @@ Good night sir`;
                                     </div>
                                 `).join('')}
                             </div>
-                            <button type="button" onclick="appendOpsInputRow('ob-other-list', 'ob-other-row', 'උදා: Sky Club Paramotor at Bentota 0830-1830hrs')" class="w-full py-1.5 bg-white border border-dashed border-slate-400 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-100">
+                            <button type="button" onclick="appendOpsInputRow('ob-other-list', 'ob-other-row', 'Other කරුණක්...')" class="w-full py-1.5 bg-white border border-dashed border-slate-400 rounded-lg text-[11px] font-bold text-slate-700 hover:bg-slate-100">
                                 + Other කරුණක් එක් කරන්න
                             </button>
                         </div>
@@ -1825,7 +2006,7 @@ Good night sir`;
         }
 
         function saveDailyOpsBriefing() {
-            const user = state.session.user;
+            const user = state.session?.user;
             if (!canEditOpsBriefing(user)) {
                 showToast('අවසර නැත! ADSO Branch පමණි.', 'error');
                 return;
@@ -1913,8 +2094,8 @@ Good night sir`;
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Personal PIN (4-Digit) *</label>
-                                <input id="nr-pin" type="text" maxlength="4" value="${escapeHTML(editingUser ? editingUser.pin : '')}" placeholder="උදා: 1010" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-bold">
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">${editingUser ? 'New Initial PIN (Optional)' : 'Initial PIN (4-Digit) *'}</label>
+                                <input id="nr-pin" type="password" inputmode="numeric" maxlength="4" value="" placeholder="${editingUser ? 'වෙනස් නම් පමණක් ගසන්න' : 'ආරම්භක PIN 4'}" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-bold">
                             </div>
                         </div>
 
@@ -1947,7 +2128,7 @@ Good night sir`;
             lucide.createIcons();
         }
 
-        function saveNominalMember(editId) {
+        async function saveNominalMember(editId) {
             const serviceNo = document.getElementById('nr-sno').value.trim().toUpperCase();
             const rank = normalizeRankName(document.getElementById('nr-rank').value);
             const name = document.getElementById('nr-name').value.trim().toUpperCase();
@@ -1957,15 +2138,26 @@ Good night sir`;
             const phone2 = document.getElementById('nr-p2').value.trim();
             const status = document.getElementById('nr-status').value;
 
-            if (!serviceNo || !name || pin.length !== 4 || isNaN(pin)) {
-                showToast('Service No, නම සහ ඉලක්කම් 4ක PIN අංකය අනිවාර්ය වේ.', 'error');
+            if (!serviceNo || !name) {
+                showToast('Service No සහ නම අනිවාර්ය වේ.', 'error');
+                return;
+            }
+            if (!editId && (pin.length !== 4 || isNaN(pin))) {
+                showToast('නව සාමාජිකයා සඳහා ඉලක්කම් 4ක ආරම්භක PIN අංකයක් ලබා දෙන්න.', 'error');
+                return;
+            }
+            if (pin && (pin.length !== 4 || isNaN(pin))) {
+                showToast('PIN අංකය ඉලක්කම් 4ක් විය යුතුය.', 'error');
                 return;
             }
 
-            const duplicatePin = state.nominalRoll.find(u => u.pin === pin && u.id !== editId);
-            if (duplicatePin) {
-                showToast(`PIN ${pin} දැනටමත් ${duplicatePin.rank} ${duplicatePin.name} හට භාවිතා වේ.`, 'error');
-                return;
+            const newPinHash = pin ? await hashPinSHA256(pin) : '';
+            if (newPinHash) {
+                const duplicatePin = state.nominalRoll.find(u => u.id !== editId && (u.pin === pin || u.pinHash === newPinHash));
+                if (duplicatePin) {
+                    showToast(`මෙම PIN අංකය දැනටමත් ${duplicatePin.rank} ${duplicatePin.name} හට භාවිතා වේ.`, 'error');
+                    return;
+                }
             }
 
             if (editId) {
@@ -1973,7 +2165,10 @@ Good night sir`;
                 if (idx >= 0) {
                     state.nominalRoll[idx] = {
                         ...state.nominalRoll[idx],
-                        serviceNo, rank, name, branch, pin, phone1: whatsapp, phone2, whatsapp, status
+                        serviceNo, rank, name, branch,
+                        pin: '',
+                        pinHash: newPinHash || state.nominalRoll[idx].pinHash,
+                        phone1: whatsapp, phone2, whatsapp, status
                     };
                     logAudit(state.session.user, 'Nominal Roll', `${rank} ${name} (${serviceNo}) ගේ විස්තර යාවත්කාලීන කළේය (Branch: ${branch}, Status: ${status}).`);
                     showToast('සාමාජික විස්තර යාවත්කාලීන විය!', 'success');
@@ -1981,15 +2176,18 @@ Good night sir`;
             } else {
                 state.nominalRoll.push({
                     id: 'u_' + Date.now(),
-                    serviceNo, rank, name, branch, pin, phone1: whatsapp, phone2, whatsapp,
+                    serviceNo, rank, name, branch,
+                    pin: '',
+                    pinHash: newPinHash,
+                    phone1: whatsapp, phone2, whatsapp,
                     role: rank === 'SUPER ADMIN' ? 'admin' : 'officer',
                     status
                 });
                 logAudit(state.session.user, 'Nominal Roll', `නව සාමාජිකයෙකු එක් කළේය: ${rank} ${name} (${serviceNo}) - ${branch}.`);
-                showToast('නව සාමාජිකයා සම්මත Branch & Number පිළිවෙළට එක් විය!', 'success');
+                showToast('නව සාමාජිකයා Nominal Roll වෙත එක් විය!', 'success');
             }
 
-            const activeCount = getActivePersonnel().length;
+            const activeCount = getActivePersonnel().filter(u => u.role !== 'admin').length || getActivePersonnel().length;
             state.report.parade.total = activeCount;
             if (state.report.parade.present > activeCount) {
                 state.report.parade.present = activeCount;
@@ -2022,7 +2220,7 @@ Good night sir`;
                     </div>
                     <h3 class="font-bold text-base text-slate-900">සම්පූර්ණයෙන්ම ඉවත් කරන්නද?</h3>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        <strong>${escapeHTML(member.serviceNo)} - ${escapeHTML(member.rank)} ${escapeHTML(member.name)}</strong> (${escapeHTML(member.branch)}) පද්ධතියෙන් සම්පූර්ණයෙන්ම මකා දැමීමට (Permanent Delete) අවශ්‍ය බව තහවුරු කරන්න.
+                        <strong>${escapeHTML(member.serviceNo)} - ${escapeHTML(member.rank)} ${escapeHTML(member.name)}</strong> (${escapeHTML(member.branch)}) පද්ධතියෙන් සම්පූර්ණයෙන්ම මකා දැමීමට අවශ්‍ය බව තහවුරු කරන්න.
                     </p>
                     <div class="flex gap-2 pt-2">
                         <button onclick="closeModal()" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl btn-press">
@@ -2051,7 +2249,7 @@ Good night sir`;
             if (state.report.keyDutyHeads.crewChiefId === userId) state.report.keyDutyHeads.crewChiefId = '';
             if (state.report.keyDutyHeads.cdDutyId === userId) state.report.keyDutyHeads.cdDutyId = '';
 
-            const activeCount = getActivePersonnel().length;
+            const activeCount = getActivePersonnel().filter(u => u.role !== 'admin').length || getActivePersonnel().length;
             state.report.parade.total = activeCount;
             if (state.report.parade.present > activeCount) {
                 state.report.parade.present = activeCount;
@@ -2078,7 +2276,7 @@ Good night sir`;
                     </div>
                     <h3 class="font-bold text-base text-slate-900">QR කේත අලුත් කරන්නද?</h3>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        නව QR Token එකක් නිකුත් කළ විට පැරණි QR කේත අවලංගු වේ. ඉදිරියට යාමට තහවුරු කරන්න.
+                        නව QR Token එකක් නිකුත් කළ විට පැරණි QR කේත අවලංගු වේ.
                     </p>
                     <div class="flex gap-2 pt-2">
                         <button onclick="closeModal()" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl btn-press">අවලංගු කරන්න</button>
@@ -2091,45 +2289,15 @@ Good night sir`;
         }
 
         function rotateQRCodes() {
-            state.report.qrTokenVersion += 1;
+            state.report.qrTokenVersion = (state.report.qrTokenVersion || 1) + 1;
             logAudit(state.session.user, 'Super Admin Security', `නව QR කේත නිකුත් කළේය (Token v${state.report.qrTokenVersion}.0).`);
             saveState();
             showToast(`නව QR කේත (v${state.report.qrTokenVersion}.0) සක්‍රිය කළේය!`, 'success');
             render();
         }
 
-        function confirmResetAllDemoData() {
-            const modal = document.getElementById('modal-container');
-            modal.innerHTML = `
-                <div class="bg-white w-full max-w-[380px] rounded-2xl shadow-2xl overflow-hidden fade-in p-5 text-center space-y-3">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
-                        <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="font-bold text-base text-slate-900">සියලු දත්ත Reset කරන්නද?</h3>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        ඔබ ඇතුළත් කළ සියලුම වෙනස්කම් ඉවත් වී මුල් Default තත්ත්වයට පත් වේ.
-                    </p>
-                    <div class="flex gap-2 pt-2">
-                        <button onclick="closeModal()" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl btn-press">නැත</button>
-                        <button onclick="resetAllDemoData()" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow btn-press">ඔව්, Reset කරන්න</button>
-                    </div>
-                </div>
-            `;
-            modal.classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function resetAllDemoData() {
-            localStorage.removeItem('ops3_nominal');
-            localStorage.removeItem('ops3_report');
-            localStorage.removeItem('ops3_seen');
-            localStorage.removeItem('ops3_notices');
-            localStorage.removeItem('ops3_audit');
-            location.reload();
-        }
-
         // ==========================================
-        // 10. VIEW RENDERERS (WITH ROMS IDENTITY & 41016 STAMP)
+        // 10. VIEW RENDERERS (PUBLIC OPEN VIEW + PIN ACTION LAYER)
         // ==========================================
         function renderIdentityFooter() {
             const isError = state.cloudStatus.includes('Error');
@@ -2145,199 +2313,14 @@ Good night sir`;
             `;
         }
 
-        function renderLoginScreen() {
-            const activeUsers = getActivePersonnel();
-            const modeConfig = {
-                general: {
-                    title: 'General QR පිවිසුම',
-                    subtitle: 'ඔබගේ නම තෝරා හෝ කෙලින්ම PIN අංකය ගසන්න',
-                    badge: 'GENERAL QR',
-                    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'
-                },
-                duty: {
-                    title: 'Duty Handover QR පිවිසුම',
-                    subtitle: 'අද Duty භාර නිලධාරියාගේ Personal PIN අංකය ඇතුළත් කරන්න',
-                    badge: 'DUTY EDITOR QR',
-                    badgeCls: 'bg-amber-100 text-amber-900 border-amber-300'
-                },
-                admin: {
-                    title: 'Super Admin පාලක පිවිසුම',
-                    subtitle: 'Nominal Roll, Audit Logs සහ QR පාලනය සඳහා Super Admin PIN',
-                    badge: 'SUPER ADMIN',
-                    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'
-                }
-            }[state.selectedQrMode];
-
-            return `
-                <header class="bg-slate-900 text-white px-5 pt-5 pb-6 rounded-b-3xl shadow-lg">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-inner">
-                                <i data-lucide="radar" class="w-6 h-6 text-white"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-1.5">
-                                    <h1 class="font-extrabold text-lg tracking-tight leading-none">ROMS</h1>
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">BY ${escapeHTML(ROMS_IDENTITY.createdBy)}</span>
-                                </div>
-                                <p class="text-[10px] text-slate-400 mt-1">Radar Operation Management System</p>
-                            </div>
-                        </div>
-                        <button onclick="openQRModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 text-blue-300 btn-press">
-                            <i data-lucide="qr-code" class="w-4 h-4"></i>
-                            <span>QR කේත</span>
-                        </button>
-                    </div>
-                    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-2.5 flex items-center justify-between text-xs">
-                        <span class="text-slate-300">📅 ${escapeHTML(state.report.date)}</span>
-                        <span class="text-emerald-400 font-semibold">සක්‍රීය පිරිස (Active): ${activeUsers.length}</span>
-                    </div>
-                </header>
-
-                <main class="flex-1 px-4 py-5 flex flex-col justify-between">
-                    ${state.loginStep === 'qr_select' ? `
-                        <div class="space-y-3.5 fade-in">
-                            <div class="text-center">
-                                <h2 class="text-base font-bold text-slate-800">පිවිසෙන ආකාරය තෝරන්න</h2>
-                                <p class="text-xs text-slate-500">Scan කළ QR කේතය අනුව පහත විකල්පය තෝරන්න</p>
-                            </div>
-
-                            <button onclick="selectQRMode('general')" class="w-full text-left bg-white hover:bg-blue-50/40 border-2 border-slate-200 hover:border-blue-500 rounded-2xl p-3.5 shadow-sm transition-all flex items-center gap-3.5 btn-press">
-                                <div class="w-11 h-11 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                                    <i data-lucide="qr-code" class="w-6 h-6"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-sm text-slate-900">General QR පිවිසුම</span>
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">නිලධාරීන්</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">දෛනික වාර්තා, Seen Log සහ විශේෂ පණිවිඩ බැලීමට.</p>
-                                </div>
-                                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
-                            </button>
-
-                            <button onclick="selectQRMode('duty')" class="w-full text-left bg-white hover:bg-amber-50/50 border-2 border-amber-300 hover:border-amber-500 rounded-2xl p-3.5 shadow-sm transition-all flex items-center gap-3.5 btn-press">
-                                <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                                    <i data-lucide="clipboard-edit" class="w-6 h-6"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-sm text-slate-900">Duty Handover QR</span>
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900">අද Duty කෙනා</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">පෙළපාලි වාර්තා, Key Duties, Shift Duty සහ Briefing Update කිරීමට.</p>
-                                </div>
-                                <i data-lucide="chevron-right" class="w-5 h-5 text-amber-600"></i>
-                            </button>
-
-                            <button onclick="selectQRMode('admin')" class="w-full text-left bg-slate-200/80 hover:bg-slate-200 border border-slate-300 rounded-2xl p-3 transition-all flex items-center gap-3 btn-press">
-                                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
-                                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <span class="font-bold text-xs text-slate-900 block">Super Admin පාලක පිවිසුම</span>
-                                    <span class="text-[11px] text-slate-600">Nominal Roll, Audit Logs සහ QR පාලනය</span>
-                                </div>
-                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
-                            </button>
-                        </div>
-
-                        <!-- 1-Tap Demo Login -->
-                        <div class="mt-5 bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">⚡ ඉක්මන් පරීක්ෂාව (Active Nominal Roll)</span>
-                                <button onclick="confirmResetAllDemoData()" class="text-[11px] text-rose-600 hover:underline font-bold">Reset Default</button>
-                            </div>
-                            <div class="grid grid-cols-1 gap-1.5 max-h-44 overflow-y-auto pr-0.5">
-                                ${activeUsers.map(u => {
-                                    const isAdm = u.role === 'admin';
-                                    const isDutyDefault = u.serviceNo === '41016';
-                                    const cardCls = isAdm
-                                        ? 'bg-slate-900 text-white hover:bg-slate-800 border-slate-800'
-                                        : isDutyDefault
-                                            ? 'bg-amber-50 border-amber-300 text-slate-800 hover:bg-amber-100'
-                                            : 'bg-blue-50/70 border-blue-200 text-slate-800 hover:bg-blue-100';
-                                    const badgeText = isAdm ? 'Super Admin (PIN: 9999)' : isDutyDefault ? `Duty QR (PIN: ${u.pin})` : `General QR (PIN: ${u.pin})`;
-                                    const targetMode = isAdm ? 'admin' : isDutyDefault ? 'duty' : 'general';
-                                    return `
-                                        <button onclick="quickDemoLogin('${u.pin}', '${targetMode}')" class="px-3 py-2 text-left rounded-xl border ${cardCls} transition flex items-center justify-between btn-press">
-                                            <div class="min-w-0">
-                                                <div class="text-[11px] font-bold truncate">${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)}</div>
-                                                <div class="text-[10px] opacity-75">${escapeHTML(u.branch)}</div>
-                                            </div>
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-black/10 shrink-0">${escapeHTML(badgeText)}</span>
-                                        </button>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    ` : `
-                        <div class="fade-in flex flex-col items-center">
-                            <div class="w-full flex items-center justify-between mb-2">
-                                <button onclick="backToQRSelect()" class="text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1 py-1.5 px-2.5 rounded-lg bg-slate-200">
-                                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                                    <span>ආපසු</span>
-                                </button>
-                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${modeConfig.badgeCls}">${modeConfig.badge}</span>
-                            </div>
-
-                            <div class="text-center my-1">
-                                <h2 class="text-base font-bold text-slate-900">${modeConfig.title}</h2>
-                                <p class="text-xs text-slate-500 mt-0.5 max-w-[290px] mx-auto">${modeConfig.subtitle}</p>
-                            </div>
-
-                            <div class="w-full max-w-[290px] mt-2">
-                                <select onchange="state.selectedLoginUserId = this.value; state.pinBuffer = ''; render();" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-semibold text-slate-800">
-                                    <option value="">-- නම තෝරන්න (හෝ කෙලින්ම PIN ගසන්න) --</option>
-                                    ${activeUsers
-                                        .filter(u => state.selectedQrMode === 'admin' ? u.role === 'admin' : true)
-                                        .map(u => `<option value="${u.id}" ${state.selectedLoginUserId === u.id ? 'selected' : ''}>${escapeHTML(u.serviceNo)} - ${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.branch)})</option>`)
-                                        .join('')}
-                                </select>
-                            </div>
-
-                            <div class="flex items-center justify-center gap-3.5 my-3.5">
-                                ${[0, 1, 2, 3].map(idx => `
-                                    <div class="w-11 h-12 rounded-2xl border-2 flex items-center justify-center text-xl font-bold ${state.pinBuffer.length > idx ? 'border-blue-600 bg-blue-50 text-blue-900' : 'border-slate-300 bg-white text-slate-300'}">
-                                        ${state.pinBuffer.length > idx ? '●' : ''}
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-2 w-full max-w-[290px]">
-                                ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `
-                                    <button onclick="handlePinDigit('${n}')" class="py-2.5 rounded-2xl bg-white hover:bg-slate-100 active:bg-blue-600 active:text-white border border-slate-200 shadow-sm text-lg font-bold text-slate-800 btn-press">
-                                        ${n}
-                                    </button>
-                                `).join('')}
-                                <div class="flex items-center justify-center text-[10px] text-slate-400 font-semibold text-center leading-tight">4-Digit<br>PIN</div>
-                                <button onclick="handlePinDigit('0')" class="py-2.5 rounded-2xl bg-white hover:bg-slate-100 active:bg-blue-600 active:text-white border border-slate-200 shadow-sm text-lg font-bold text-slate-800 btn-press">
-                                    0
-                                </button>
-                                <button onclick="handlePinBackspace()" class="py-2.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center btn-press">
-                                    <i data-lucide="delete" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `}
-                </main>
-
-                <footer class="px-4 py-3 text-center text-[10px] text-slate-400 bg-slate-900/95 border-t border-slate-800">
-                    <span class="font-bold text-slate-200">ROMS</span> • Radar Operation Management System •
-                    <span class="text-blue-400 font-semibold">Created by ${escapeHTML(ROMS_IDENTITY.createdBy)}</span> •
-                    <span class="text-emerald-400">${escapeHTML(state.cloudStatus)}</span>
-                </footer>
-            `;
-        }
-
-        // TAB 1: DAILY BRIEFING & PARADE
+        // TAB 1: DAILY BRIEFING & PARADE (PUBLICLY VIEWABLE WITHOUT PIN)
         function renderBriefingTab() {
             const r = state.report;
             const p = r.parade;
             const heads = r.keyDutyHeads || {};
-            const currentUser = state.session.user;
+            const currentUser = state.session?.user || null;
             const activeIds = new Set(getActivePersonnel().map(u => u.id));
-            const mySeen = state.seenLogs.find(s => s.userId === currentUser.id);
+            const mySeen = currentUser ? state.seenLogs.find(s => s.userId === currentUser.id) : null;
             const activeSeenCount = state.seenLogs.filter(s => activeIds.has(s.userId)).length;
 
             const keyHeadCards = [
@@ -2346,7 +2329,25 @@ Good night sir`;
                 { label: 'CD DUTY', uid: heads.cdDutyId, accent: 'border-emerald-400 bg-emerald-950/60 text-emerald-300' }
             ];
 
+            const paradeBoxes = [
+                { key: 'present', count: p.present, label: 'පැමිණි', boxCls: 'bg-emerald-50 border-emerald-200 hover:border-emerald-400', numCls: 'text-emerald-700', txtCls: 'text-emerald-900', activeRing: 'ring-2 ring-emerald-500 border-emerald-500' },
+                { key: 'leave', count: p.leave, label: 'නිවාඩු', boxCls: 'bg-amber-50 border-amber-200 hover:border-amber-400', numCls: 'text-amber-700', txtCls: 'text-amber-900', activeRing: 'ring-2 ring-amber-500 border-amber-500' },
+                { key: 'duty', count: p.duty, label: 'Duty', boxCls: 'bg-blue-50 border-blue-200 hover:border-blue-400', numCls: 'text-blue-700', txtCls: 'text-blue-900', activeRing: 'ring-2 ring-blue-500 border-blue-500' },
+                { key: 'course', count: p.course, label: 'Course', boxCls: 'bg-purple-50 border-purple-200 hover:border-purple-400', numCls: 'text-purple-700', txtCls: 'text-purple-900', activeRing: 'ring-2 ring-purple-500 border-purple-500' },
+                { key: 'sick', count: p.sick, label: 'Sick', boxCls: 'bg-rose-50 border-rose-200 hover:border-rose-400', numCls: 'text-rose-700', txtCls: 'text-rose-900', activeRing: 'ring-2 ring-rose-500 border-rose-500' },
+                { key: 'medicalSick', count: p.medicalSick || 0, label: 'Med. Sick', boxCls: 'bg-red-100/80 border-red-300 hover:border-red-500', numCls: 'text-red-800', txtCls: 'text-red-950', activeRing: 'ring-2 ring-red-600 border-red-600' },
+                { key: 'attachOut', count: p.attachOut || 0, label: 'Attach Out', boxCls: 'bg-orange-50 border-orange-200 hover:border-orange-400', numCls: 'text-orange-700', txtCls: 'text-orange-950', activeRing: 'ring-2 ring-orange-500 border-orange-500' },
+                { key: 'attachIn', count: p.attachIn || 0, label: 'Attach In', boxCls: 'bg-cyan-50 border-cyan-200 hover:border-cyan-400', numCls: 'text-cyan-700', txtCls: 'text-cyan-950', activeRing: 'ring-2 ring-cyan-500 border-cyan-500' }
+            ];
+
+            const selectedBoxObj = paradeBoxes.find(b => b.key === state.selectedParadeBox);
+            const selectedBoxMembers = selectedBoxObj ? getMembersForParadeBox(selectedBoxObj.key) : [];
+
             const activeNominalDetails = (r.paradeNominalDetails || []).filter(item => activeIds.has(item.userId));
+            const activeDutyList = (r.nightDuty || []).filter(duty => {
+                const u = getUserById(duty.userId);
+                return u && u.status === 'Active';
+            });
 
             return `
                 <div class="space-y-3.5 fade-in pb-6">
@@ -2404,49 +2405,66 @@ Good night sir`;
                         </div>
                     </div>
 
+                    <!-- PARADE STATE WITH CLICKABLE BOXES -->
                     <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
                         <div class="flex items-center justify-between">
-                            <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                                <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
-                                <span>පෙළපාලි වාර්තාව (Parade State)</span>
-                            </h3>
+                            <div>
+                                <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+                                    <span>පෙළපාලි වාර්තාව (Parade State)</span>
+                                </h3>
+                                <p class="text-[10px] text-slate-500 mt-0.5">කවුදැයි බැලීමට කොටුවක් ඔබන්න (Tap any box)</p>
+                            </div>
                             <span class="text-[11px] font-bold bg-slate-900 text-white px-2.5 py-0.5 rounded-lg">මුළු: ${p.total}</span>
                         </div>
 
                         <div class="grid grid-cols-4 gap-1.5 text-center">
-                            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-emerald-700">${p.present}</div>
-                                <div class="text-[10px] font-bold text-emerald-900">පැමිණි</div>
-                            </div>
-                            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-amber-700">${p.leave}</div>
-                                <div class="text-[10px] font-bold text-amber-900">නිවාඩු</div>
-                            </div>
-                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-blue-700">${p.duty}</div>
-                                <div class="text-[10px] font-bold text-blue-900">Duty</div>
-                            </div>
-                            <div class="bg-purple-50 border border-purple-200 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-purple-700">${p.course}</div>
-                                <div class="text-[10px] font-bold text-purple-900">Course</div>
-                            </div>
-                            <div class="bg-rose-50 border border-rose-200 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-rose-700">${p.sick}</div>
-                                <div class="text-[10px] font-bold text-rose-900">Sick</div>
-                            </div>
-                            <div class="bg-red-100/80 border border-red-300 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-red-800">${p.medicalSick || 0}</div>
-                                <div class="text-[10px] font-bold text-red-950">Med. Sick</div>
-                            </div>
-                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-orange-700">${p.attachOut || 0}</div>
-                                <div class="text-[10px] font-bold text-orange-950">Attach Out</div>
-                            </div>
-                            <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-2">
-                                <div class="text-base font-extrabold text-cyan-700">${p.attachIn || 0}</div>
-                                <div class="text-[10px] font-bold text-cyan-950">Attach In</div>
-                            </div>
+                            ${paradeBoxes.map(box => {
+                                const isSelected = state.selectedParadeBox === box.key;
+                                return `
+                                    <button type="button" onclick="toggleParadeBox('${box.key}')" class="${box.boxCls} ${isSelected ? box.activeRing : ''} border rounded-xl p-2 text-center transition-all btn-press cursor-pointer">
+                                        <div class="text-base font-extrabold ${box.numCls}">${box.count}</div>
+                                        <div class="text-[10px] font-bold ${box.txtCls} leading-tight">${box.label}</div>
+                                    </button>
+                                `;
+                            }).join('')}
                         </div>
+
+                        ${selectedBoxObj ? `
+                            <div class="bg-slate-50 border-2 border-blue-200 rounded-xl p-3 space-y-2 fade-in">
+                                <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                                    <div class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                                        <i data-lucide="user-check" class="w-3.5 h-3.5 text-blue-600"></i>
+                                        <span>${escapeHTML(selectedBoxObj.label)} — අදාළ අය (${selectedBoxMembers.length})</span>
+                                    </div>
+                                    <button type="button" onclick="toggleParadeBox('${selectedBoxObj.key}')" class="text-[10px] font-bold text-slate-600 hover:text-slate-900 px-2 py-0.5 rounded bg-slate-200">
+                                        හකුළන්න ✕
+                                    </button>
+                                </div>
+                                ${selectedBoxMembers.length === 0 ? `
+                                    <p class="text-[11px] text-slate-500 py-1">මෙම කාණ්ඩය සඳහා වෙනම නාමික සටහනක් ඇතුළත් කර නොමැත (Count: ${selectedBoxObj.count}).</p>
+                                ` : `
+                                    <div class="space-y-1.5 max-h-48 overflow-y-auto">
+                                        ${selectedBoxMembers.map(entry => {
+                                            const u = entry.user;
+                                            return `
+                                                <div class="bg-white rounded-lg p-2 border border-slate-200 flex items-center justify-between gap-2 text-[11px]">
+                                                    <div class="min-w-0">
+                                                        <div class="font-extrabold text-slate-900 truncate">${escapeHTML(u.rank)} ${escapeHTML(u.name)} <span class="text-[10px] font-semibold text-slate-500">(${escapeHTML(u.serviceNo)})</span></div>
+                                                        <div class="text-[10px] text-blue-700 font-semibold">${escapeHTML(entry.subtitle)} • <span class="text-slate-500">${escapeHTML(u.branch)}</span></div>
+                                                    </div>
+                                                    ${u.phone1 ? `
+                                                        <a href="tel:${escapeHTML(u.phone1)}" class="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 shrink-0" title="Call ${escapeHTML(u.phone1)}">
+                                                            <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                                        </a>
+                                                    ` : ''}
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                `}
+                            </div>
+                        ` : ''}
 
                         ${activeNominalDetails.length > 0 ? `
                             <div class="pt-2 border-t border-slate-100 space-y-1.5">
@@ -2477,39 +2495,63 @@ Good night sir`;
                         ` : ''}
                     </div>
 
+                    <!-- EXPANDABLE / COLLAPSIBLE DUTY ROSTER -->
                     <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5 mb-2.5">
-                            <i data-lucide="shield-check" class="w-4 h-4 text-amber-600"></i>
-                            <span>රාජකාරි සහ Shift ලැයිස්තුව (Duty Roster)</span>
-                        </h3>
-                        <div class="space-y-2">
-                            ${r.nightDuty.map(duty => {
-                                const u = getUserById(duty.userId);
-                                if (!u || u.status !== 'Active') return '';
-                                const dName = duty.dutyType || duty.post || 'DUTY';
-                                return `
-                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
-                                        <div class="min-w-0">
-                                            <div class="flex items-center gap-1.5 flex-wrap">
-                                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-900 text-amber-300">${escapeHTML(dName)}</span>
-                                                <span class="text-[10px] font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">${escapeHTML(duty.shift)}</span>
+                        <div class="flex items-center justify-between gap-2 ${state.dutyRosterExpanded ? 'mb-2.5' : ''}">
+                            <button type="button" onclick="toggleDutyRosterExpand()" class="flex items-center gap-1.5 text-left flex-1">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-amber-600 shrink-0"></i>
+                                <span class="font-bold text-xs text-slate-900">රාජකාරි සහ Shift ලැයිස්තුව (Duty Roster)</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">${activeDutyList.length}</span>
+                            </button>
+                            <button type="button" onclick="toggleDutyRosterExpand()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold flex items-center gap-1 btn-press shrink-0">
+                                <span>${state.dutyRosterExpanded ? 'හකුළන්න' : 'දිග හරින්න'}</span>
+                                <i data-lucide="${state.dutyRosterExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+
+                        ${state.dutyRosterExpanded ? `
+                            <div class="space-y-2 fade-in">
+                                ${activeDutyList.length === 0 ? `
+                                    <p class="text-xs text-slate-400">රාජකාරි ඇතුළත් කර නොමැත.</p>
+                                ` : activeDutyList.map(duty => {
+                                    const u = getUserById(duty.userId);
+                                    const dName = duty.dutyType || duty.post || 'DUTY';
+                                    const isItemExpanded = !!state.expandedDutyIds[duty.id];
+                                    return `
+                                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <button type="button" onclick="toggleSingleDutyItem('${duty.id}')" class="text-left flex-1 min-w-0">
+                                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-900 text-amber-300">${escapeHTML(dName)}</span>
+                                                        <span class="text-[10px] font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">${escapeHTML(duty.shift)}</span>
+                                                    </div>
+                                                    <div class="text-xs text-slate-900 font-bold mt-1 flex items-center gap-1.5 flex-wrap">
+                                                        <span>${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.serviceNo)})</span>
+                                                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">${escapeHTML(u.branch)}</span>
+                                                    </div>
+                                                </button>
+                                                <div class="flex items-center gap-1 shrink-0">
+                                                    ${u.phone1 ? `
+                                                        <a href="tel:${escapeHTML(u.phone1)}" class="p-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200" title="Call ${escapeHTML(u.phone1)}">
+                                                            <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                                        </a>
+                                                    ` : ''}
+                                                    <button type="button" onclick="toggleSingleDutyItem('${duty.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" title="විස්තර">
+                                                        <i data-lucide="${isItemExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div class="text-xs text-slate-900 font-bold mt-1 flex items-center gap-1.5">
-                                                <span>${escapeHTML(u.rank)} ${escapeHTML(u.name)} (${escapeHTML(u.serviceNo)})</span>
-                                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">${escapeHTML(u.branch)}</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-1.5 shrink-0">
-                                            ${u.phone1 ? `
-                                                <a href="tel:${escapeHTML(u.phone1)}" class="p-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200" title="Call ${escapeHTML(u.phone1)}">
-                                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
-                                                </a>
+                                            ${isItemExpanded ? `
+                                                <div class="mt-2 pt-2 border-t border-slate-200/80 text-[11px] text-slate-600 flex flex-wrap items-center justify-between gap-2">
+                                                    <span>🪪 Ser No: <strong>${escapeHTML(u.serviceNo)}</strong> • Branch: <strong>${escapeHTML(u.branch)}</strong></span>
+                                                    ${u.phone1 ? `<span class="font-semibold text-slate-800">📞 ${escapeHTML(u.phone1)}</span>` : ''}
+                                                </div>
                                             ` : ''}
                                         </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
@@ -2535,7 +2577,7 @@ Good night sir`;
                                     <i data-lucide="send" class="w-3.5 h-3.5"></i>
                                     <span>WhatsApp</span>
                                 </button>
-                                ${canEditOpsBriefing(currentUser) ? `
+                                ${!currentUser || canEditOpsBriefing(currentUser) ? `
                                     <button onclick="openEditOpsBriefingModal()" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow text-[11px] font-bold flex items-center gap-1 btn-press">
                                         <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                         <span>Edit Briefing</span>
@@ -2591,6 +2633,7 @@ Good night sir`;
                         </div>
                     </div>
 
+                    <!-- SEEN ACKNOWLEDGEMENT (REQUIRES PIN IF NOT LOGGED IN YET) -->
                     <div class="bg-white rounded-2xl p-4 border-2 ${mySeen ? 'border-emerald-400 bg-emerald-50/20' : 'border-blue-400'} shadow-sm">
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
@@ -2607,8 +2650,14 @@ Good night sir`;
                                    placeholder="විශේෂ සටහනක් (Remark) ඇත්නම් මෙහි ලියන්න..."
                                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-600 bg-white">
                             <button onclick="acknowledgeDailyReport()" class="w-full py-3 ${mySeen ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold rounded-xl shadow flex items-center justify-center gap-2 text-xs btn-press">
-                                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                                <span>${mySeen ? `✓ තහවුරු කර ඇත (${escapeHTML(mySeen.time)}) - යාවත්කාලීන කරන්න` : 'පණිවිඩය ලැබුණා / බැලුවා (Mark as Seen)'}</span>
+                                <i data-lucide="${currentUser ? 'check-circle-2' : 'key-round'}" class="w-4 h-4"></i>
+                                <span>${
+                                    !currentUser
+                                        ? 'ඔබගේ PIN ගසා Seen ලෙස තහවුරු කරන්න'
+                                        : mySeen
+                                            ? `✓ තහවුරු කර ඇත (${escapeHTML(mySeen.time)}) - යාවත්කාලීන කරන්න`
+                                            : 'පණිවිඩය ලැබුණා / බැලුවා (Mark as Seen)'
+                                }</span>
                             </button>
                         </div>
                     </div>
@@ -2616,7 +2665,7 @@ Good night sir`;
             `;
         }
 
-        // TAB 2: SEEN LOG
+        // TAB 2: SEEN LOG (PUBLICLY VIEWABLE)
         function renderSeenTab() {
             const activeUsers = getActivePersonnel();
             const seenMap = new Map(state.seenLogs.map(s => [s.userId, s]));
@@ -2703,8 +2752,23 @@ Good night sir`;
             `;
         }
 
-        // TAB 3: TARGETED SPECIAL NOTICES
+        // TAB 3: TARGETED SPECIAL NOTICES (PIN PROTECTED)
         function renderSpecialNoticesTab() {
+            if (!state.session) {
+                return `
+                    <div class="bg-white rounded-2xl p-6 text-center border border-slate-200 shadow-sm space-y-3 fade-in">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center mx-auto">
+                            <i data-lucide="lock" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-900">රහස්‍ය විශේෂ පණිවිඩ (Special Notices)</h3>
+                        <p class="text-xs text-slate-500">ඔබ වෙත එවා ඇති විශේෂ පණිවිඩ බැලීමට හෝ පණිවිඩ යැවීමට ඔබගේ 4-Digit PIN අංකය ඇතුළත් කරන්න.</p>
+                        <button onclick="openAuthModal('general', 'open_notices')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl btn-press">
+                            🔑 PIN ගසා ඇතුළු වන්න
+                        </button>
+                    </div>
+                `;
+            }
+
             const currentUser = state.session.user;
             const isAdmin = state.session.mode === 'admin';
 
@@ -2883,7 +2947,7 @@ Good night sir`;
                         </div>
 
                         <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 space-y-2">
-                            <div class="text-[11px] font-bold text-slate-800">Medical Sick / Attach Out / Attach In කවුදැයි සටහන් කරන්න:</div>
+                            <div class="text-[11px] font-bold text-slate-800">Medical Sick / Attach Out / Attach In / Leave කවුදැයි සටහන් කරන්න:</div>
 
                             ${(r.paradeNominalDetails || []).length > 0 ? `
                                 <div class="space-y-1.5">
@@ -3004,7 +3068,7 @@ Good night sir`;
             `;
         }
 
-        // TAB 5: UNIFIED NOMINAL ROLL MANAGEMENT
+        // TAB 5: UNIFIED NOMINAL ROLL MANAGEMENT (SUPER ADMIN)
         function renderNominalRollTab() {
             const activeGroupObj = BRANCH_FILTER_GROUPS.find(g => g.id === state.nominalFilterGroup) || BRANCH_FILTER_GROUPS[0];
             const sortedList = sortNominalRoll(state.nominalRoll);
@@ -3076,7 +3140,7 @@ Good night sir`;
                                                     <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${escapeHTML(u.branch)}</span>
                                                 </div>
                                                 <div class="text-[11px] text-slate-500 mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                                                    <span>🔑 PIN: <strong class="text-slate-800">${escapeHTML(u.pin || '••••')}</strong></span>
+                                                    <span>🔒 PIN: <strong class="text-emerald-700">${u.pinHash ? 'Encrypted ✓' : 'Not Set'}</strong></span>
                                                     ${u.whatsapp || u.phone1 ? `<span>📱 ${escapeHTML(u.whatsapp || u.phone1)}</span>` : '<span class="text-slate-400">📱 අංකයක් නැත</span>'}
                                                     ${u.phone2 ? `<span>📞 ${escapeHTML(u.phone2)}</span>` : ''}
                                                 </div>
@@ -3102,7 +3166,7 @@ Good night sir`;
 
                                             <div class="flex items-center gap-1">
                                                 <button onclick="openNominalFormModal('${u.id}')" class="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold">
-                                                    Edit
+                                                    Edit / Reset PIN
                                                 </button>
                                                 ${u.role !== 'admin' ? `
                                                     <button onclick="toggleMemberStatus('${u.id}')" class="px-2 py-1 rounded-lg ${isActive ? 'bg-amber-100 hover:bg-amber-200 text-amber-900' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'} text-[10px] font-bold">
@@ -3130,7 +3194,7 @@ Good night sir`;
                     <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
                         <div>
                             <h3 class="font-bold text-xs text-slate-900">QR කේත ආරක්ෂාව (QR Token Control)</h3>
-                            <p class="text-[11px] text-slate-500">වත්මන් අනුවාදය: Token v${state.report.qrTokenVersion}.0</p>
+                            <p class="text-[11px] text-slate-500">වත්මන් අනුවාදය: Token v${state.report.qrTokenVersion || 1}.0</p>
                         </div>
                         <button onclick="confirmRotateQRCodes()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 btn-press">
                             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
@@ -3152,7 +3216,7 @@ Good night sir`;
                                     ? 'bg-amber-100 text-amber-900'
                                     : log.mode.includes('Admin') || log.mode.includes('Nominal')
                                         ? 'bg-rose-100 text-rose-800'
-                                        : log.mode.includes('Special') || log.mode.includes('ADSO')
+                                        : log.mode.includes('Special') || log.mode.includes('ADSO') || log.mode.includes('Security')
                                             ? 'bg-indigo-100 text-indigo-800'
                                             : 'bg-blue-100 text-blue-800';
                                 return `
@@ -3172,50 +3236,61 @@ Good night sir`;
             `;
         }
 
-        // AUTHENTICATED SHELL + GLOBAL SPECIAL ALERT BANNER
-        function renderAuthenticatedApp() {
-            const { user, mode } = state.session;
-            const canEdit = mode === 'duty' || mode === 'admin';
-            const isAdmin = mode === 'admin';
+        // UNIFIED SHELL (OPEN GENERAL VIEW BY DEFAULT + PIN LOGIN FOR ACTIONS)
+        function renderAppShell() {
+            const isLoggedIn = !!state.session;
+            const user = state.session?.user || null;
+            const mode = state.session?.mode || 'public';
+            const canEdit = isLoggedIn && (mode === 'duty' || mode === 'admin');
+            const isAdmin = isLoggedIn && mode === 'admin';
             const alertObj = state.report.specialAlert;
 
-            const unreadSpecialCount = state.specialNotices.filter(n =>
+            const unreadSpecialCount = isLoggedIn ? state.specialNotices.filter(n =>
                 n.recipientIds.includes(user.id) && !n.responses.some(r => r.userId === user.id)
-            ).length;
+            ).length : 0;
 
             const modeBadge = {
-                general: { text: 'General QR', cls: 'bg-blue-500/20 text-blue-200 border-blue-400/30' },
-                duty: { text: 'Duty QR', cls: 'bg-amber-500/20 text-amber-200 border-amber-400/30' },
+                public: { text: 'General View (Open)', cls: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30' },
+                general: { text: 'Officer PIN', cls: 'bg-blue-500/20 text-blue-200 border-blue-400/30' },
+                duty: { text: 'Duty Editor', cls: 'bg-amber-500/20 text-amber-200 border-amber-400/30' },
                 admin: { text: 'Super Admin', cls: 'bg-rose-500/20 text-rose-200 border-rose-400/30' }
             }[mode];
 
             return `
                 <header class="bg-slate-900 text-white px-4 py-3 sticky top-0 z-30 shadow-md">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-[10px] text-blue-400 shrink-0 text-center leading-tight px-1">
-                                ${escapeHTML(user.rank)}
+                                ${isLoggedIn ? escapeHTML(user.rank) : '<i data-lucide="radar" class="w-5 h-5"></i>'}
                             </div>
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="font-bold text-xs truncate">${escapeHTML(user.name)}</span>
+                                    <span class="font-bold text-xs truncate">${isLoggedIn ? escapeHTML(user.name) : 'ROMS Live Briefing'}</span>
                                     <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-blue-600 text-white shrink-0">ROMS</span>
                                 </div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span class="text-[9px] px-1.5 py-0.2 rounded border ${modeBadge.cls} font-bold">${modeBadge.text}</span>
-                                    <span class="text-[10px] text-slate-400">${escapeHTML(user.serviceNo)} • ${escapeHTML(user.branch)}</span>
+                                    <span class="text-[10px] text-slate-400 truncate">${isLoggedIn ? `${escapeHTML(user.serviceNo)} • ${escapeHTML(user.branch)}` : escapeHTML(state.report.date)}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button onclick="openQRModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300" title="QR Codes">
-                                <i data-lucide="qr-code" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="logout()" class="px-2.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-bold flex items-center gap-1">
-                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                                <span>Exit</span>
-                            </button>
+                            ${isLoggedIn ? `
+                                <button onclick="openChangeMyPinModal()" class="px-2 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[11px] font-bold flex items-center gap-1" title="ඔබගේ PIN වෙනස් කරන්න">
+                                    <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+                                    <span>PIN</span>
+                                </button>
+                                <button onclick="logout()" class="px-2.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-bold flex items-center gap-1">
+                                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                                    <span>Exit</span>
+                                </button>
+                            ` : `
+                                <button onclick="openAuthModal('general')" class="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow btn-press">
+                                    <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+                                    <span>PIN Login</span>
+                                </button>
+                            `}
                         </div>
                     </div>
                 </header>
@@ -3272,7 +3347,12 @@ Good night sir`;
                             <i data-lucide="edit-3" class="w-4 h-4"></i>
                             <span class="text-[10px]">Update</span>
                         </button>
-                    ` : ''}
+                    ` : `
+                        <button onclick="openAuthModal('duty')" class="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition text-slate-500 font-medium hover:text-amber-700">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            <span class="text-[10px]">Duty Edit</span>
+                        </button>
+                    `}
 
                     ${isAdmin ? `
                         <button onclick="switchTab('nominal')" class="flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-xl transition ${state.activeTab === 'nominal' ? 'text-blue-800 font-bold bg-blue-100/70' : 'text-slate-500 font-medium'}">
@@ -3295,15 +3375,11 @@ Good night sir`;
 
         function render() {
             const appEl = document.getElementById('app');
-            if (!state.session) {
-                appEl.innerHTML = renderLoginScreen();
-            } else {
-                appEl.innerHTML = renderAuthenticatedApp();
-            }
+            appEl.innerHTML = renderAppShell();
             lucide.createIcons();
         }
 
-        // Start App, Pull Cloud Data First, and Enable Live Sync
+        // Start App in Open General View, Pull Live Cloud Data, and Enable Realtime Sync
         render();
         pullInitialCloudState(true);
         setupRealtimeSubscription();
